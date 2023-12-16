@@ -1,0 +1,23 @@
+{
+  "name": "verify_auth",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@dfinity/agent": "^0.20.2",
+    "@dfinity/candid": "^0.20.2",
+    "@dfinity/identity": "^0.20.2",
+    "@dfinity/identity-secp256k1": "^0.20.2",
+    "@dfinity/principal": "^0.20.2",
+    "solid-js": "^1.8.5"
+  },
+  "devDependencies": {
+    "vite": "^5.0.10",
+    "vite-plugin-solid": "^2.7.2"
+  }
+}
