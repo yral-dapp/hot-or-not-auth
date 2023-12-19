@@ -16,6 +16,7 @@ use ic_agent::{
 };
 use k256::SecretKey;
 use sec1::LineEnding::CRLF;
+use serde::Serialize;
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
@@ -29,7 +30,7 @@ use tower_http::cors::CorsLayer;
 async fn authenticate(
     identity_keeper: State<Arc<RwLock<IdentityKeeper>>>,
     oauth_identity: String,
-) -> Json<(String, SignedDelegation, Vec<u8>, Vec<u8>, Vec<u8>)> {
+) -> Json<(String, DelegationIdentity, String)> {
     // client identity
     let client_pem: Option<KeyPair> = {
         let read_access = identity_keeper.read().unwrap();
@@ -46,8 +47,6 @@ async fn authenticate(
         new_client_pem
     });
     let client_identity = Secp256k1Identity::from_pem(client_pem.private_pem.as_bytes()).unwrap();
-    let client_pubkey_len = client_identity.public_key().unwrap().len();
-    println!("client_pubkey_len: {}", client_pubkey_len,);
 
     // create Temp session
     let client_temp_session_identifier = format!("{}, {:?}", oauth_identity, SystemTime::now());
@@ -55,7 +54,7 @@ async fn authenticate(
     let client_temp_identity =
         Secp256k1Identity::from_pem(client_temp_pem.private_pem.as_bytes()).unwrap();
 
-    let expiration = Utc::now() + Duration::hours(1);
+    let expiration = Utc::now() + Duration::hours(12);
     let expiration = expiration.timestamp_nanos_opt().unwrap().unsigned_abs();
 
     // delegation
@@ -81,6 +80,27 @@ async fn authenticate(
         Box::new(client_temp_identity.clone()),
         vec![signed_delegation.clone()],
     );
+    println!("{}", client_identity.sender().unwrap());
+    println!("{}", delegated_identity.sender().unwrap());
+    let sender_principal = delegated_identity.sender().unwrap().to_text();
+
+    let inner_pubkey = client_temp_identity.public_key().unwrap();
+    let inner_private = client_temp_pem.private_key.clone();
+
+    let shareable_delegated_identity = DelegationIdentity {
+        _inner: vec![inner_pubkey, inner_private],
+        _delegation: Delegations {
+            delegations: vec![DelegationWithSignature {
+                delegation: ShareableDelegation {
+                    expiration: signed_delegation.delegation.expiration,
+                    pubkey: signed_delegation.delegation.pubkey,
+                    targets: None,
+                },
+                signature: signed_delegation.signature,
+            }],
+            public_key: signature_pubkey.clone(),
+        },
+    };
 
     let agent_with_client_identity = Agent::builder()
         .with_verify_query_signatures(false)
@@ -114,6 +134,7 @@ async fn authenticate(
         .fetch_root_key()
         .await
         .unwrap();
+    // agent_with_delegated_identity.get_principal()
     let delegated_result = match agent_with_delegated_identity
         .query(&canister_id, "get_principal_id")
         .with_arg(Encode!().unwrap())
@@ -133,11 +154,50 @@ async fn authenticate(
 
     Json((
         user_principal_id,
-        signed_delegation,
-        signature_pubkey,
-        client_temp_pem.public_key,
-        client_temp_pem.private_key,
+        shareable_delegated_identity,
+        sender_principal,
     ))
+}
+
+fn to_hex_string(bytes: Vec<u8>) -> String {
+    bytes.iter().fold(String::new(), |mut acc, &byte| {
+        acc.push_str(&format!("{:02x}", byte));
+        acc
+    })
+}
+
+#[derive(Debug, Serialize)]
+struct PrincipalId {
+    _arr: String,
+    #[serde(rename = "_isPrincipal")]
+    _is_principal: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct DelegationIdentity {
+    pub _inner: Vec<Vec<u8>>,
+    pub _delegation: Delegations,
+}
+
+#[derive(Debug, Serialize)]
+struct Delegations {
+    pub delegations: Vec<DelegationWithSignature>,
+    #[serde(rename = "publicKey")]
+    pub public_key: Vec<u8>,
+}
+
+#[derive(Debug, Serialize)]
+struct DelegationWithSignature {
+    pub delegation: ShareableDelegation,
+    pub signature: Vec<u8>,
+}
+
+#[derive(Debug, Serialize)]
+struct ShareableDelegation {
+    pub pubkey: Vec<u8>,
+    pub expiration: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub targets: Option<Vec<String>>,
 }
 
 #[derive(Default, Clone)]
