@@ -1,3 +1,5 @@
+# Client Authentication Flow
+
 sequenceDiagram
     actor client as Client Device
     participant ssr as SSR Backend
