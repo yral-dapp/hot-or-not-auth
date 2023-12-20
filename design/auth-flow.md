@@ -1,6 +1,9 @@
 # Client Authentication Flow
 
 
+## Client Authentication flow using external OAuth provider
+### First Time Website visit:
+
 ```mermaid
 ---
 title: Client Authentication flow using external OAuth provider
@@ -34,3 +37,37 @@ sequenceDiagram
     Note over client: Client builds Secp256k1KeyIdentity <br/> & DelegationIdentity <br/> & keeps ready for <br/> future canister calls
     client->>canister: When needed calls canister directly for fetching resources
     canister-->>client: Provides resources
+```
+
+## Client flow when session expires
+### Client visit after 30 minutes
+
+```mermaid
+---
+title: Client Session KeyPair expired
+---
+sequenceDiagram
+    actor client as Client Device
+    participant ssr as SSR Backend
+    participant auth as Auth Service
+    participant ext_auth as External OAuth Provider
+    participant canister as Canister
+    participant kv as Cloudflare KV Store
+    client->>canister: Fetch video resources
+    canister-->>client: Session Timeout
+    client->>ssr: Ask for new session KeyPair <br/> by providing <br/> OAuth Id & Token
+    critical Check if its valid Token
+        ssr->>ext_auth: Sends OAuth Id & Token
+        option Valid Token
+            ssr->>auth: Sends OAuth Id & Token
+            Note over auth: Generates new Session KeyPair
+            ssr->>kv: Updates Session KeyPair
+            auth-->>ssr: Sends new Session KeyPiar
+            ssr-->>client: Receives new Session KeyPair
+            client->>canister: Fetches video resources
+            canister-->>client: Receives video resources
+        option Invalid Token
+            ssr-->>client: Shows Login Page
+            Note over client: Continues flow as per <br/> 'First time website visit'
+    end
+```
