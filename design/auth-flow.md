@@ -1,5 +1,10 @@
 # Client Authentication Flow
 
+
+```mermaid
+---
+title: Client Authentication flow using external OAuth provider
+---
 sequenceDiagram
     actor client as Client Device
     participant ssr as SSR Backend
