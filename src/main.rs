@@ -92,7 +92,13 @@ async fn authenticate(
         _delegation: Delegations {
             delegations: vec![DelegationWithSignature {
                 delegation: ShareableDelegation {
-                    expiration: signed_delegation.delegation.expiration,
+                    expiration: to_hex_string(
+                        signed_delegation
+                            .delegation
+                            .expiration
+                            .to_be_bytes()
+                            .to_vec(),
+                    ),
                     pubkey: signed_delegation.delegation.pubkey,
                     targets: None,
                 },
@@ -195,7 +201,7 @@ struct DelegationWithSignature {
 #[derive(Debug, Serialize)]
 struct ShareableDelegation {
     pub pubkey: Vec<u8>,
-    pub expiration: u64,
+    pub expiration: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub targets: Option<Vec<String>>,
 }
