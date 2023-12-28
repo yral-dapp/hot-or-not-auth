@@ -98,3 +98,26 @@ sequenceDiagram
     end
     Note over client: Client continues using app & can claim tokens
 ```
+
+### Renew Session KeyPair before expiry on client
+
+```mermaid
+---
+title: Renew session KeyPair when expiration is less than 5 minutes away
+---
+sequenceDiagram
+    actor client as Client Device
+    participant ssr as SSR Backend
+    participant auth as Auth Service
+    participant canister as Canister
+    participant kv as Cloudflare KV Store
+    critical Check if Delegated Identity expiration has less than 5 minutes
+    option Less than 5 Mins
+        client->>auth: Ask for Session KeyPair renewal
+        auth-->>client: Validates signature <br/> & renews Session KeyPair
+        auth-)kv: Updates Session KeyPair for the user
+    option Greater than 5 Mins
+        Note over client: No action <br/> required
+    end
+    client->>canister: Continue requesting new resources
+```

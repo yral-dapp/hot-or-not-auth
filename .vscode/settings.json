@@ -1,0 +1,12 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "Cargo.toml",
+    "examples/verify-auth-leptos/Cargo.toml",
+    "examples/verify-principal/src/verify_principal_backend/Cargo.toml"
+  ],
+  "rust-analyzer.procMacro.ignored": {
+    "leptos_macro": [
+      "server"
+    ]
+  }
+}
