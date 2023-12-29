@@ -8,5 +8,6 @@
     "leptos_macro": [
       "server"
     ]
-  }
+  },
+  "rust-analyzer.cargo.features": "all"
 }
