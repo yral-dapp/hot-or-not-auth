@@ -1,0 +1,30 @@
+{
+  "canisters": {
+    "verify_principal_backend": {
+      "candid": "src/verify_principal_backend/verify_principal_backend.did",
+      "package": "verify_principal_backend",
+      "type": "rust"
+    },
+    "verify_principal_frontend": {
+      "dependencies": [
+        "verify_principal_backend"
+      ],
+      "frontend": {
+        "entrypoint": "src/verify_principal_frontend/src/index.html"
+      },
+      "source": [
+        "src/verify_principal_frontend/assets",
+        "dist/verify_principal_frontend/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}

@@ -1,0 +1,1 @@
+service : { get_principal_id : () -> (text) query }

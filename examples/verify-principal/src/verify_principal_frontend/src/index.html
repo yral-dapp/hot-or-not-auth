@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>verify_principal</title>
+    <base href="/" />
+    <link rel="icon" href="favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <main>
+      <img src="logo.png" alt="HotOrNot logo" />
+      <br />
+      <br />
+      <form action="#" id="get_delegated_id">
+        <button type="submit">Generate Delegated Id</button>
+      </form>
+      <section id="principal_id"></section>
+      <section id="delegation"></section>
+      <section id="signature"></section>
+      <section id="axum_error_msg"></section>
+      <form action="#" id="call_canister">
+        <label for="name">Delegated Id Received from server: &nbsp;</label>
+        <input id="name" alt="Name" type="text" disabled />
+        <button type="submit">Verify Delegated Id</button>
+      </form>
+      <section id="delegated_principal_id"></section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+[[language]]
+name = "rust"
+
+[language-server.rust-analyzer.config]
+linkedProjects = [
+	"Cargo.toml",
+	"examples/verify-auth-leptos/Cargo.toml",
+	"examples/verify-principal/src/verify_principal_backend/Cargo.toml",
+]
+cargo = { features = "all" }

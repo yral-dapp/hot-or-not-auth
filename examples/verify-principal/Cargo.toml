@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "src/verify_principal_backend",
+]
+resolver = "2"
