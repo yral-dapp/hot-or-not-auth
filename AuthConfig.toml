@@ -1,0 +1,7 @@
+# ic_url = "https://ic0.app"
+ic_url = "http://127.0.0.1:4943"
+
+[cloudflare_config]
+account_identifier = ""
+namespace_identifier = ""
+api_token = ""

@@ -1,5 +1,10 @@
 extern crate tracing;
 
+use figment::{
+    providers::{Env, Format, Toml},
+    Figment,
+};
+use serde::Deserialize;
 use tracing_subscriber::FmtSubscriber;
 
 pub fn logging() {
@@ -8,8 +13,23 @@ pub fn logging() {
         .expect("setting tracing default failed");
 }
 
-pub fn configure() {}
+pub fn configure() -> AuthConfig {
+    let config: AuthConfig = Figment::new()
+        .merge(Toml::file("AuthConfig.toml"))
+        .extract()
+        .unwrap();
+    config
+}
 
+#[derive(Deserialize)]
 pub struct AuthConfig {
-    ic_url: String,
+    pub ic_url: String,
+    pub cloudflare_config: CloudflareConfig,
+}
+
+#[derive(Deserialize)]
+pub struct CloudflareConfig {
+    pub account_identifier: String,
+    pub namespace_identifier: String,
+    pub api_token: String,
 }
