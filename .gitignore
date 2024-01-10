@@ -1,2 +1,2 @@
 target/
-cloudflare-kv-api/Cargo.lock
+cloudflare-api/Cargo.lock

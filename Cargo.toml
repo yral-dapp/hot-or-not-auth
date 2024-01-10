@@ -8,6 +8,7 @@ axum = { version = "0.7", features = ["http2"] }
 bip32 = "0.5"
 candid = "0.10"
 chrono = "0.4"
+cloudflare-api = { path = "./cloudflare-api" }
 figment = { version = "0.10", features = ["env", "yaml", "toml"] }
 ic-agent = "0.31"
 k256 = "0.13"
