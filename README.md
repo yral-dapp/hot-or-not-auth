@@ -1,6 +1,6 @@
 Authentication service for Hot Or Not
 
-![Target Architecture](https://github.com/go-bazzinga/hot-or-not-auth/blob/delegated_identity/design/auth-flow.md)
+![Target Architecture](https://github.com/go-bazzinga/hot-or-not-auth/blob/main/design/auth-flow.md)
 
 
 ## Current POC Architecture

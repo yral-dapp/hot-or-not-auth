@@ -5,12 +5,13 @@ use figment::{
     Figment,
 };
 use serde::Deserialize;
-use tracing_subscriber::FmtSubscriber;
 
 pub fn logging() {
-    let auth_subscriber = FmtSubscriber::builder().finish();
-    tracing::subscriber::set_global_default(auth_subscriber)
-        .expect("setting tracing default failed");
+    tracing_subscriber::fmt()
+        .compact()
+        .with_file(true)
+        .with_line_number(true)
+        .init();
 }
 
 pub fn configure() -> AuthConfig {

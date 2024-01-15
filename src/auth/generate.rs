@@ -4,13 +4,20 @@ use k256::SecretKey;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use sec1::LineEnding::CRLF;
-use tracing::log::info;
 
 pub fn key_pair() -> Result<KeyPair, String> {
     let mnemonic = Mnemonic::new(MnemonicType::for_key_size(256).unwrap(), Language::English);
     let secret = mnemonic_to_key(&mnemonic)
         .map_err(|e| format!("Converting mnemonic to key failed: {}", e))?;
-    let public_key = secret.public_key().to_string();
+    let public_key = secret
+        .public_key()
+        .to_string()
+        .replace("\n", "")
+        // .strip_prefix("-----BEGIN PUBLIC KEY-----")
+        // .unwrap()
+        // .strip_suffix("-----END PUBLIC KEY-----")
+        // .unwrap()
+        .to_owned();
     let private_key = secret.to_bytes().to_vec();
     let pem = secret
         .to_sec1_pem(CRLF)

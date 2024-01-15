@@ -1,38 +1,41 @@
 use super::agent_js;
 use super::generate;
-use axum::extract::State;
-use axum::Json;
+use axum::{
+    extract::{FromRef, State},
+    Json,
+};
+use axum_extra::extract::cookie::{Cookie, Key, PrivateCookieJar};
 use chrono::{Duration, Utc};
 use ic_agent::{
     identity::{DelegatedIdentity, Delegation, Secp256k1Identity, SignedDelegation},
     Identity,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 use tracing::log::info;
 
 pub async fn generate_session(
-    identity_keeper: State<Arc<RwLock<IdentityKeeper>>>,
-    Json(session_request): Json<SessionRequest>,
-) -> Json<SessionResponse> {
+    identity_keeper: State<IdentityKeeper>,
+    mut jar: PrivateCookieJar,
+) -> (PrivateCookieJar, Json<SessionResponse>) {
+    info!("Jar: {:?}", jar.get("user_identity"));
     // client identity
-    let user_identity = session_request.user_identity;
+    let user_identity: Option<String> = None;
     let user_key_pair: Option<generate::KeyPair> = if user_identity.is_none() {
         None
     } else {
-        let read_access = identity_keeper.read().await;
-        read_access.oauth_map.get(&user_identity.unwrap()).cloned()
+        let read_access = identity_keeper.oauth_map.read().await;
+        read_access.get(&user_identity.unwrap()).cloned()
     };
     let user_key_pair = match user_key_pair {
         Some(kp) => kp,
         None => {
             let new_key_pair = generate::key_pair().unwrap();
             {
-                let write_access = identity_keeper.write();
+                let write_access = identity_keeper.oauth_map.write();
                 write_access
                     .await
-                    .oauth_map
                     .insert(new_key_pair.public_key.to_owned(), new_key_pair.clone());
             }
             new_key_pair
@@ -99,17 +102,19 @@ pub async fn generate_session(
             public_key: signature_pubkey.clone(),
         },
     };
-
     let session_response = SessionResponse {
-        user_identity: user_key_pair.public_key,
+        user_identity: user_key_pair.public_key.to_owned(),
         delegation_identity: shareable_delegated_identity,
     };
-    // (
-    //         user_principal_id,
-    //         shareable_delegated_identity,
-    //         sender_principal,
-    //     )
-    Json(session_response)
+
+    info!("{}", user_key_pair.public_key);
+
+    let mut cookie = Cookie::new("user_identity", user_key_pair.public_key);
+    cookie.set_http_only(true);
+
+    jar = jar.add(cookie);
+
+    (jar, Json(session_response))
 }
 
 // pub fn authenticate(
@@ -118,11 +123,6 @@ pub async fn generate_session(
 //     user_identity: String,
 // ) -> Json<SessionResponse> {
 // }
-
-#[derive(Deserialize)]
-pub struct SessionRequest {
-    user_identity: Option<String>,
-}
 
 #[derive(Serialize)]
 pub struct SessionResponse {
@@ -136,6 +136,15 @@ pub struct Token {
     sender_principal: String,
 }
 
+#[derive(Clone)]
 pub struct IdentityKeeper {
-    pub oauth_map: HashMap<String, generate::KeyPair>,
+    pub oauth_map: Arc<RwLock<HashMap<String, generate::KeyPair>>>,
+    pub key: Key,
+}
+
+// this impl tells `PrivateCookieJar` how to access the key from our state
+impl FromRef<IdentityKeeper> for Key {
+    fn from_ref(state: &IdentityKeeper) -> Self {
+        state.key.clone()
+    }
 }
