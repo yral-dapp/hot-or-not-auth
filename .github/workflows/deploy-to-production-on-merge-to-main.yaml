@@ -19,8 +19,11 @@ jobs:
             ~/.cargo/
             target/
           key: cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Update ubuntu
-        run: sudo apt-get update && apt-get install -y libc6-dev && update-ca-certificates
+      - name: Update ubuntu packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libc6-dev
+          update-ca-certificates
       - name: Build
         run: cargo build --release
       - uses: superfly/flyctl-actions/setup-flyctl@master
