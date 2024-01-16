@@ -1,6 +1,5 @@
 mod auth;
 mod init;
-mod providers;
 mod store;
 
 use auth::identity;
