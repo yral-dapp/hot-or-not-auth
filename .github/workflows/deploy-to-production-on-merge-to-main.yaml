@@ -22,7 +22,7 @@ jobs:
       - name: Update ubuntu
         run: sudo apt-get update && apt-get install -y libc6-dev && update-ca-certificates
       - name: Build
-        run: cargo build --release --verbose
+        run: cargo build --release
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy a docker container to Fly.io
         run: flyctl deploy --remote-only
