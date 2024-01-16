@@ -1,0 +1,45 @@
+{
+	"info": {
+		"_postman_id": "d900b0d7-d038-4a7a-aba5-9b9e3989f161",
+		"name": "GoBazzinga",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31786636"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://hot-or-not-auth.fly.dev/generate_session",
+					"protocol": "https",
+					"host": [
+						"hot-or-not-auth",
+						"fly",
+						"dev"
+					],
+					"path": [
+						"generate_session"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
