@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 axum = { version = "0.7", features = ["http2"] }
+axum-extra = { version = "0.9", features = ["cookie", "cookie-signed", "cookie-private", "typed-header"] }
 bip32 = "0.5"
 candid = "0.10"
 chrono = "0.4"
