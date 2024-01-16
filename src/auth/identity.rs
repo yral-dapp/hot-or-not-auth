@@ -4,7 +4,7 @@ use axum::{
     extract::{FromRef, State},
     Json,
 };
-use axum_extra::extract::cookie::{Cookie, Key, PrivateCookieJar};
+use axum_extra::extract::cookie::{Cookie, Key, SignedCookieJar};
 use chrono::{Duration, Utc};
 use ic_agent::{
     identity::{DelegatedIdentity, Delegation, Secp256k1Identity, SignedDelegation},
@@ -17,11 +17,14 @@ use tracing::log::info;
 
 pub async fn generate_session(
     identity_keeper: State<IdentityKeeper>,
-    mut jar: PrivateCookieJar,
-) -> (PrivateCookieJar, Json<SessionResponse>) {
-    info!("Jar: {:?}", jar.get("user_identity"));
+    mut jar: SignedCookieJar,
+) -> (SignedCookieJar, Json<SessionResponse>) {
+    let user_identity: Option<String> = match jar.get("user_identity") {
+        Some(val) => Some(val.value().to_owned()),
+        None => None,
+    };
+    info!("User check: {:?}", user_identity);
     // client identity
-    let user_identity: Option<String> = None;
     let user_key_pair: Option<generate::KeyPair> = if user_identity.is_none() {
         None
     } else {
@@ -109,10 +112,15 @@ pub async fn generate_session(
 
     info!("{}", user_key_pair.public_key);
 
-    let mut cookie = Cookie::new("user_identity", user_key_pair.public_key);
-    cookie.set_http_only(true);
+    let mut user_cookie = Cookie::new("user_identity", user_key_pair.public_key.to_owned());
+    // cookie.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
+    // cookie.set_expires(expiration);
+    user_cookie.set_http_only(true);
+    jar = jar.add(user_cookie);
 
-    jar = jar.add(cookie);
+    let mut exp_cookie = Cookie::new("expiration", expiration.to_string());
+    exp_cookie.set_http_only(true);
+    jar = jar.add(exp_cookie);
 
     (jar, Json(session_response))
 }
@@ -127,13 +135,7 @@ pub async fn generate_session(
 #[derive(Serialize)]
 pub struct SessionResponse {
     user_identity: String,
-    // user_principal: String,
     delegation_identity: agent_js::DelegationIdentity,
-}
-
-pub struct Token {
-    delegated_identity: agent_js::DelegationIdentity,
-    sender_principal: String,
 }
 
 #[derive(Clone)]
@@ -142,7 +144,6 @@ pub struct IdentityKeeper {
     pub key: Key,
 }
 
-// this impl tells `PrivateCookieJar` how to access the key from our state
 impl FromRef<IdentityKeeper> for Key {
     fn from_ref(state: &IdentityKeeper) -> Self {
         state.key.clone()

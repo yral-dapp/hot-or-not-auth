@@ -20,10 +20,10 @@ async fn main() {
 
     let identity_keeper = identity::IdentityKeeper {
         oauth_map: Arc::new(RwLock::new(HashMap::new())),
-        // Generate a secure key
-        //
-        // You probably don't wanna generate a new one each time the app starts though
-        key: Key::generate(),
+        // fetch from KV
+        key: Key::from(
+            "xMN1BKvKC9iB2MU6JrEhP8Wkpvcxbi6ZSFPf8LaDxXAbSaCncjFKNkNzX4t2LijK".as_bytes(),
+        ),
     };
     let identity_keeper: identity::IdentityKeeper = identity_keeper;
     let service = ServiceBuilder::new().layer(CorsLayer::permissive());
