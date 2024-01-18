@@ -1,10 +1,10 @@
-mod auth;
-mod init;
-mod store;
-
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
+    mod auth;
+    mod init;
+    mod store;
+
     use auth::identity;
     use axum::{
         routing::{get, post},
