@@ -2,9 +2,9 @@ use cfg_if::cfg_if;
 
 cfg_if! { if #[cfg(feature = "ssr")] {
     use axum::{
-        body::{boxed, Body, BoxBody},
-        extract::State,
+        body::{Body, BoxBody, boxed},
         response::IntoResponse,
+        extract::State,
         http::{Request, Response, StatusCode, Uri},
     };
     use axum::response::Response as AxumResponse;
@@ -20,7 +20,7 @@ cfg_if! { if #[cfg(feature = "ssr")] {
         if res.status() == StatusCode::OK {
             res.into_response()
         } else {
-            let handler = leptos_axum::render_app_to_stream(options.to_owned(), move || view!{<App/>});
+            let handler = leptos_axum::render_app_to_stream(options.to_owned(), move || view!{<App/>} );
             handler(req).await.into_response()
         }
     }

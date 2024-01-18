@@ -10,6 +10,8 @@ use ic_agent::{
     identity::{DelegatedIdentity, Delegation, Secp256k1Identity, SignedDelegation},
     Identity,
 };
+use leptos::*;
+use leptos_router::RouteListing;
 use serde::Serialize;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
@@ -138,14 +140,16 @@ pub struct SessionResponse {
     delegation_identity: agent_js::DelegationIdentity,
 }
 
-#[derive(Clone)]
+#[derive(FromRef, Clone)]
 pub struct IdentityKeeper {
+    pub leptos_options: LeptosOptions,
+    pub routes: Vec<RouteListing>,
     pub oauth_map: Arc<RwLock<HashMap<String, generate::KeyPair>>>,
     pub key: Key,
 }
 
-impl FromRef<IdentityKeeper> for Key {
-    fn from_ref(state: &IdentityKeeper) -> Self {
-        state.key.clone()
-    }
-}
+// impl FromRef<IdentityKeeper> for Key {
+//     fn from_ref(state: &IdentityKeeper) -> Self {
+//         state.key.clone()
+//     }
+// }
