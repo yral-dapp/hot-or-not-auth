@@ -17,6 +17,7 @@ pub fn logging() {
 pub fn configure() -> AuthConfig {
     let config: AuthConfig = Figment::new()
         .merge(Toml::file("AuthConfig.toml"))
+        .merge(Env::prefixed("auth_"))
         .extract()
         .unwrap();
     config
@@ -25,6 +26,7 @@ pub fn configure() -> AuthConfig {
 #[derive(Deserialize)]
 pub struct AuthConfig {
     pub ic_url: String,
+    pub auth_sign_key: String,
     pub cloudflare_config: CloudflareConfig,
 }
 
