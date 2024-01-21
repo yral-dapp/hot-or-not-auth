@@ -1,10 +1,7 @@
 use super::agent_js;
 use super::generate;
 use axum::response::IntoResponse;
-use axum::{
-    extract::FromRef,
-    http::{header, HeaderValue},
-};
+use axum::{extract::FromRef, http::header};
 use axum_extra::extract::cookie::{Cookie, Key, SignedCookieJar};
 use chrono::{Duration, Utc};
 use ic_agent::{
