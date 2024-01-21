@@ -69,7 +69,7 @@ async fn main() {
     init::logging();
     let config = init::configure();
 
-    let conf = get_configuration(Some("Cargo.toml")).await.unwrap();
+    let conf = get_configuration(None).await.unwrap();
     let leptos_options = conf.leptos_options;
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(App);

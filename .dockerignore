@@ -1,5 +1,6 @@
 **/target
 !/target/x86_64-unknown-linux-gnu/release/hot-or-not-auth
+!/target/site
 **/cloudflare-api/Cargo.lock
 
 examples/verify-auth-leptos/target
