@@ -4,30 +4,31 @@ cfg_if! { if #[cfg(feature = "ssr")] {
     mod auth;
     mod init;
     mod store;
+}}
 
+#[cfg(feature = "ssr")]
 mod handlers {
-    use hot_or_not_auth::app::App;
     use crate::auth::identity::IdentityKeeper;
     use axum::{
         body::Body as AxumBody,
-        extract::{Path, RawQuery, State},
-        http::{header::HeaderMap, Request},
+        extract::{Path, State},
+        http::Request,
         response::{IntoResponse, Response},
     };
+    use hot_or_not_auth::app::App;
     use leptos::*;
     use leptos_axum::handle_server_fns_with_context;
+    use tracing::log::info;
 
     pub async fn server_fn_handler(
         State(app_state): State<IdentityKeeper>,
         path: Path<String>,
-        headers: HeaderMap,
-        raw_query: RawQuery,
         request: Request<AxumBody>,
     ) -> impl IntoResponse {
+        info!("{:?}", path);
         handle_server_fns_with_context(
-            path, headers, raw_query,
             move || {
-                provide_context(app_state.oauth_map.clone());
+                provide_context(app_state.clone());
             },
             request,
         )
@@ -42,23 +43,19 @@ mod handlers {
             app_state.leptos_options.clone(),
             app_state.routes.clone(),
             move || {
-                provide_context(app_state.oauth_map.clone());
+                provide_context(app_state.clone());
             },
             App,
         );
         handler(req).await.into_response()
     }
 }
-}}
 
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
     use auth::identity;
-    use axum::{
-        routing::{get, post},
-        Router,
-    };
+    use axum::{routing::get, Router};
     use axum_extra::extract::cookie::Key;
     use handlers::*;
     use hot_or_not_auth::{app::App, fileserve::file_and_error_handler};
@@ -87,21 +84,19 @@ async fn main() {
     let service = ServiceBuilder::new().layer(CorsLayer::permissive());
 
     let app = Router::new()
-        // .route("/", get(|| async { "Welcome to HotOrNot!" }))
-        // .route("/generate_session", post(identity::generate_session))
-        .route("/*fn_name", get(server_fn_handler).post(server_fn_handler))
+        .route(
+            "/api/*fn_name",
+            get(server_fn_handler).post(server_fn_handler),
+        )
         .leptos_routes_with_handler(routes, get(leptos_routes_handler))
         .fallback(file_and_error_handler)
         .layer(service)
         .with_state(identity_keeper);
 
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
-
-    // let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    // axum::serve(listener, app).await.unwrap();
 }
 
 #[cfg(not(feature = "ssr"))]

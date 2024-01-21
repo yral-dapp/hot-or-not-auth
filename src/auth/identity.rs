@@ -1,8 +1,9 @@
 use super::agent_js;
 use super::generate;
+use axum::response::IntoResponse;
 use axum::{
-    extract::{FromRef, State},
-    Json,
+    extract::FromRef,
+    http::{header, HeaderValue},
 };
 use axum_extra::extract::cookie::{Cookie, Key, SignedCookieJar};
 use chrono::{Duration, Utc};
@@ -11,20 +12,27 @@ use ic_agent::{
     Identity,
 };
 use leptos::*;
+use leptos_axum::ResponseOptions;
 use leptos_router::RouteListing;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 use tracing::log::info;
 
-pub async fn generate_session(
-    identity_keeper: State<IdentityKeeper>,
-    mut jar: SignedCookieJar,
-) -> (SignedCookieJar, Json<SessionResponse>) {
+#[server(endpoint = "generate_session")]
+pub async fn generate_session() -> Result<SessionResponse, ServerFnError> {
+    let identity_keeper: IdentityKeeper = use_context::<IdentityKeeper>().unwrap();
+    let mut jar =
+        leptos_axum::extract_with_state::<SignedCookieJar<Key>, IdentityKeeper, ServerFnErrorErr>(
+            &identity_keeper,
+        )
+        .await?;
+
     let user_identity: Option<String> = match jar.get("user_identity") {
         Some(val) => Some(val.value().to_owned()),
         None => None,
     };
+
     info!("User check: {:?}", user_identity);
     // client identity
     let user_key_pair: Option<generate::KeyPair> = if user_identity.is_none() {
@@ -124,7 +132,13 @@ pub async fn generate_session(
     exp_cookie.set_http_only(true);
     jar = jar.add(exp_cookie);
 
-    (jar, Json(session_response))
+    let jar_into_response = jar.into_response();
+    let response = expect_context::<ResponseOptions>();
+    for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
+        response.append_header(header::SET_COOKIE, header_value.clone());
+    }
+
+    Ok(session_response)
 }
 
 // pub fn authenticate(
@@ -134,13 +148,13 @@ pub async fn generate_session(
 // ) -> Json<SessionResponse> {
 // }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct SessionResponse {
     user_identity: String,
     delegation_identity: agent_js::DelegationIdentity,
 }
 
-#[derive(FromRef, Clone)]
+#[derive(Clone)]
 pub struct IdentityKeeper {
     pub leptos_options: LeptosOptions,
     pub routes: Vec<RouteListing>,
@@ -148,8 +162,14 @@ pub struct IdentityKeeper {
     pub key: Key,
 }
 
-// impl FromRef<IdentityKeeper> for Key {
-//     fn from_ref(state: &IdentityKeeper) -> Self {
-//         state.key.clone()
-//     }
-// }
+impl FromRef<IdentityKeeper> for Key {
+    fn from_ref(state: &IdentityKeeper) -> Self {
+        state.key.clone()
+    }
+}
+
+impl FromRef<IdentityKeeper> for LeptosOptions {
+    fn from_ref(state: &IdentityKeeper) -> Self {
+        state.leptos_options.clone()
+    }
+}
