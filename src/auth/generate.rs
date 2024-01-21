@@ -12,7 +12,7 @@ pub fn key_pair() -> Result<KeyPair, String> {
     let public_key = secret
         .public_key()
         .to_string()
-        .replace("\n", "")
+        .replace('\n', "")
         // .strip_prefix("-----BEGIN PUBLIC KEY-----")
         // .unwrap()
         // .strip_suffix("-----END PUBLIC KEY-----")
