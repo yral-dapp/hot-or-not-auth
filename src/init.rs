@@ -1,4 +1,5 @@
 use cfg_if::cfg_if;
+use serde::Deserialize;
 
 cfg_if! { if #[cfg(feature = "ssr")] {
 extern crate tracing;
@@ -7,7 +8,6 @@ use figment::{
     providers::{Env, Format, Toml},
     Figment,
 };
-use serde::Deserialize;
 }}
 
 #[cfg(feature = "ssr")]
