@@ -43,7 +43,7 @@ pub fn Login() -> impl IntoView {
     // });
 
     view! {
-        <iframe src="https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?response_type=code&client_id=504622551087-ohtmmpnnlhifhht8bdmajfn0psk4i638.apps.googleusercontent.com&state=yniV_6w-ZqIw0RQHBOuqCA&code_challenge=dkAcdpkpiJS6mck9wY9JRvdSTphSb96W072iFp4tsm4&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fgoogle_oauth2_response&scope=openid%20email&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow"
+        <iframe src=""
         height = "100%" width = "100%">
         </iframe>
     }
