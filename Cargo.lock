@@ -482,9 +482,9 @@ dependencies = [
 
 [[package]]
 name = "cached_proc_macro_types"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a4f925191b4367301851c6d99b09890311d74b0d43f274c0b34c86d308a3663"
+checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "camino"
@@ -544,9 +544,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chrono"
-version = "0.4.31"
+version = "0.4.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f2c685bad3eb3d45a01354cedb7d5faa66194d1d58ba6e267a8de788f79db38"
+checksum = "41daef31d7a747c5c847246f36de49ced6f7403b4cdabc807a97b5cc184cda7a"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -554,7 +554,7 @@ dependencies = [
  "num-traits",
  "serde",
  "wasm-bindgen",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.0",
 ]
 
 [[package]]
@@ -1767,7 +1767,7 @@ checksum = "884e2677b40cc8c339eaefcb701c32ef1fd2493d71118dc0ca4b6a736c93bd67"
 [[package]]
 name = "leptos"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "cfg-if",
  "leptos_config",
@@ -1786,7 +1786,7 @@ dependencies = [
 [[package]]
 name = "leptos_axum"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "axum",
  "cfg-if",
@@ -1809,7 +1809,7 @@ dependencies = [
 [[package]]
 name = "leptos_config"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "config",
  "regex",
@@ -1821,7 +1821,7 @@ dependencies = [
 [[package]]
 name = "leptos_dom"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "async-recursion",
  "cfg-if",
@@ -1850,7 +1850,7 @@ dependencies = [
 [[package]]
 name = "leptos_hot_reload"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "anyhow",
  "camino",
@@ -1867,7 +1867,7 @@ dependencies = [
 [[package]]
 name = "leptos_integration_utils"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "futures",
  "leptos",
@@ -1880,7 +1880,7 @@ dependencies = [
 [[package]]
 name = "leptos_macro"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "attribute-derive",
  "cfg-if",
@@ -1902,7 +1902,7 @@ dependencies = [
 [[package]]
 name = "leptos_meta"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "cfg-if",
  "indexmap 2.1.0",
@@ -1915,7 +1915,7 @@ dependencies = [
 [[package]]
 name = "leptos_reactive"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "base64 0.21.7",
  "cfg-if",
@@ -1942,7 +1942,7 @@ dependencies = [
 [[package]]
 name = "leptos_router"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "cached 0.45.1",
  "cfg-if",
@@ -1973,7 +1973,7 @@ dependencies = [
 [[package]]
 name = "leptos_server"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "inventory",
  "lazy_static",
@@ -2591,9 +2591,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.10.2"
+version = "1.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "380b951a9c5e80ddfd6136919eef32310721aa4aacd4889a8d39124b026ab343"
+checksum = "b62dbe01f0b06f9d8dc7d49e05a0785f153b00b2c227856282f671e0318c9b15"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -2603,9 +2603,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f804c7828047e88b2d32e2d7fe5a105da8ee3264f01902f796c8e067dc2483f"
+checksum = "3b7fa1134405e2ec9353fd416b17f8dacd46c473d7d3fd1cf202706a14eb792a"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -3031,7 +3031,7 @@ dependencies = [
 [[package]]
 name = "server_fn"
 version = "0.6.0-beta"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "axum",
  "bytes",
@@ -3065,7 +3065,7 @@ dependencies = [
 [[package]]
 name = "server_fn_macro"
 version = "0.6.0"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "const_format",
  "convert_case",
@@ -3078,7 +3078,7 @@ dependencies = [
 [[package]]
 name = "server_fn_macro_default"
 version = "0.6.0"
-source = "git+https://github.com/leptos-rs/leptos.git?branch=main#b450f0fd10e3cd8a3ecaefe461ef48003d24621b"
+source = "git+https://github.com/leptos-rs/leptos.git?branch=main#fce2c727ab2562a181b171809c2003747420081d"
 dependencies = [
  "server_fn_macro",
  "syn 2.0.48",
@@ -3115,15 +3115,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
 dependencies = [
  "lazy_static",
-]
-
-[[package]]
-name = "signal-hook-registry"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8229b473baa5980ac72ef434c4415e70c4b5e71b423043adb4ba059f89c99a1"
-dependencies = [
- "libc",
 ]
 
 [[package]]
@@ -3413,9 +3404,7 @@ dependencies = [
  "libc",
  "mio",
  "num_cpus",
- "parking_lot",
  "pin-project-lite",
- "signal-hook-registry",
  "socket2",
  "tokio-macros",
  "windows-sys",
@@ -3652,9 +3641,9 @@ checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 
 [[package]]
 name = "uncased"
-version = "0.9.9"
+version = "0.9.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b9bc53168a4be7402ab86c3aad243a84dd7381d09be0eddc81280c1da95ca68"
+checksum = "e1b88fcfe09e89d3866a5c11019378088af2d24c3fbd4f0543f96b479ec90697"
 dependencies = [
  "version_check",
 ]

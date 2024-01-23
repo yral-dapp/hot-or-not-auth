@@ -2,7 +2,7 @@ use cfg_if::cfg_if;
 
 cfg_if! { if #[cfg(feature = "ssr")] {
     use axum::{
-        body::{Body  },
+        body::{Body},
         response::IntoResponse,
         extract::State,
         http::{Request, Response, StatusCode, Uri},

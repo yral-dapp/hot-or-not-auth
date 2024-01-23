@@ -1,21 +1,21 @@
-use cfg_if::cfg_if;
-
-cfg_if! { if #[cfg(feature = "ssr")] {
-    mod auth;
-    mod init;
-    mod store;
-}}
+mod app;
+mod auth;
+mod error_template;
+mod fileserve;
+mod init;
+mod page;
+mod providers;
+// mod store;
 
 #[cfg(feature = "ssr")]
 mod handlers {
-    use crate::auth::identity::IdentityKeeper;
+    use crate::{app::App, auth::identity::IdentityKeeper};
     use axum::{
         body::Body as AxumBody,
         extract::{Path, State},
         http::Request,
         response::{IntoResponse, Response},
     };
-    use hot_or_not_auth::app::App;
     use leptos::*;
     use leptos_axum::handle_server_fns_with_context;
     use tracing::log::info;
@@ -54,11 +54,10 @@ mod handlers {
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use auth::identity;
+    use crate::{app::App, auth::identity, fileserve::file_and_error_handler, init};
     use axum::{routing::get, Router};
     use axum_extra::extract::cookie::Key;
     use handlers::*;
-    use hot_or_not_auth::{app::App, fileserve::file_and_error_handler};
     use leptos::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use std::{collections::HashMap, sync::Arc};
@@ -67,7 +66,8 @@ async fn main() {
     use tower_http::cors::CorsLayer;
 
     init::logging();
-    let config = init::configure();
+    let auth_config = init::configure();
+    let oauth2_client = init::oauth2_client_init(&auth_config);
 
     let conf = get_configuration(None).await.unwrap();
     let leptos_options = conf.leptos_options;
@@ -77,8 +77,9 @@ async fn main() {
     let identity_keeper = identity::IdentityKeeper {
         leptos_options,
         oauth_map: Arc::new(RwLock::new(HashMap::new())),
-        key: Key::from(config.auth_sign_key.as_bytes()),
+        key: Key::from(auth_config.auth_sign_key.as_bytes()),
         routes: routes.clone(),
+        oauth2_client,
     };
     let identity_keeper: identity::IdentityKeeper = identity_keeper;
     let service = ServiceBuilder::new().layer(CorsLayer::permissive());

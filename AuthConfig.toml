@@ -1,8 +1,13 @@
 # auth_ic_url = "https://ic0.app"
-auth_ic_url = "http://127.0.0.1:4943"
+auth_ic_url = "http://0.0.0.0:4943"
 auth_sign_key = ""
 
-# cloudflare_config
+# cloudflare_configs
 cloudflare_account_identifier = ""
 cloudflare_namespace_identifier = ""
 cloudflare_api_token = ""
+
+# oauth_configs
+google_client_id = ""
+google_client_secret = ""
+google_auth_landing_url = "http://localhost:3000/google_oauth2_response"
