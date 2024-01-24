@@ -1,18 +1,18 @@
 use super::agent_js;
 use super::generate;
-use axum::response::IntoResponse;
-use axum::{extract::FromRef, http::header};
 use axum_extra::extract::cookie::{Cookie, Key, SignedCookieJar};
+use leptos::*;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, sync::Arc};
+
+use axum::{extract::FromRef, http::header, response::IntoResponse};
 use chrono::{Duration, Utc};
 use ic_agent::{
     identity::{DelegatedIdentity, Delegation, Secp256k1Identity, SignedDelegation},
     Identity,
 };
-use leptos::*;
 use leptos_axum::ResponseOptions;
 use leptos_router::RouteListing;
-use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 use tracing::log::info;
 
@@ -120,12 +120,14 @@ pub async fn generate_session() -> Result<SessionResponse, ServerFnError> {
     info!("{}", user_key_pair.public_key);
 
     let mut user_cookie = Cookie::new("user_identity", user_key_pair.public_key.to_owned());
-    // cookie.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
-    // cookie.set_expires(expiration);
+    user_cookie.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
+    // user_cookie.set_expires(expiration);
     user_cookie.set_http_only(true);
     jar = jar.add(user_cookie);
 
     let mut exp_cookie = Cookie::new("expiration", expiration.to_string());
+    exp_cookie.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
+    // exp_cookie.set_expires(expiration);
     exp_cookie.set_http_only(true);
     jar = jar.add(exp_cookie);
 
@@ -157,6 +159,7 @@ pub struct IdentityKeeper {
     pub routes: Vec<RouteListing>,
     pub oauth_map: Arc<RwLock<HashMap<String, generate::KeyPair>>>,
     pub key: Key,
+    pub oauth2_client: oauth2::basic::BasicClient,
 }
 
 impl FromRef<IdentityKeeper> for Key {
