@@ -23,8 +23,7 @@ pub fn logging() {
 pub fn configure() -> AuthConfig {
     let config: AuthConfig = Figment::new()
         .merge(Toml::file("AuthConfig.toml"))
-        .merge(Env::prefixed("AUTH_"))
-        .merge(Env::prefixed("CLOUDFLARE_"))
+        .merge(Env::raw())
         .extract()
         .unwrap();
     config
