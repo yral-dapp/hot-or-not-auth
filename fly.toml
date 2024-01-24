@@ -21,5 +21,6 @@ primary_region = "sin"
   cpus = 1
   memory_mb = 256
 
-[env]
-  AUTH_IC_URL="https://ic0.app"
+[[files]]
+  guest_path = "AuthConfig.toml"
+  local_path = "AuthConfig.toml"
