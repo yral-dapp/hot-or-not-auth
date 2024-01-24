@@ -34,6 +34,17 @@ jobs:
           LEPTOS_BIN_TARGET_TRIPLE: x86_64-unknown-linux-gnu
         run: cargo leptos build --release
       - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: secrets setup
+        run: |
+          fly secrets set AUTH_SIGN_KEY=$AUTH_SIGN_KEY --app "hot-or-not-auth" --stage 
+          fly secrets set CLOUDFLARE_ACCOUNT_IDENTIFIER=$CLOUDFLARE_ACCOUNT_IDENTIFIER --app "hot-or-not-auth" --stage
+          fly secrets set CLOUDFLARE_NAMESPACE_IDENTIFIER=$CLOUDFLARE_NAMESPACE_IDENTIFIER --app "hot-or-not-auth" --stage
+          fly secrets set CLOUDFLARE_API_TOKEN=$CLOUDFLARE_API_TOKEN --app "hot-or-not-auth" --stage
+        env:
+          AUTH_SIGN_KEY: ${{ secrets.AUTH_SESSION_COOKIE_SIGNING_SECRET_KEY }}
+          CLOUDFLARE_NAMESPACE_IDENTIFIER: ${{ secrets.CLOUDFLARE_WORKERS_KV_NAMESPACE_ID }}
+          CLOUDFLARE_ACCOUNT_IDENTIFIER: ${{ secrets.CLOUDFLARE_WORKERS_KV_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_API_SECRET }}
       - name: Deploy a docker container to Fly.io
         env:
           FLY_API_TOKEN: ${{ secrets.HOT_OR_NOT_AUTH_FLY_IO_GITHUB_ACTION }}
