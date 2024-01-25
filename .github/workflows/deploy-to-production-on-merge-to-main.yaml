@@ -34,11 +34,13 @@ jobs:
           LEPTOS_BIN_TARGET_TRIPLE: x86_64-unknown-linux-gnu
         run: cargo leptos build --release
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - name: Deploy a docker container to Fly.io
         env:
           FLY_API_TOKEN: ${{ secrets.HOT_OR_NOT_AUTH_FLY_IO_GITHUB_ACTION }}
-        run: |
-          flyctl secrets set AUTH_SIGN_KEY=${{ secrets.AUTH_SESSION_COOKIE_SIGNING_SECRET_KEY }}
-          flyctl secrets set CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_WORKERS_API_SECRET }}
-          flyctl secrets set GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_SECRET }}
-          flyctl deploy --remote-only --build-arg CLOUDFLARE_ACCOUNT_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_ACCOUNT_ID }} --build-arg CLOUDFLARE_NAMESPACE_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_NAMESPACE_ID }} --build-arg GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_ID }}
+      - name: Set Auth Key
+        run: flyctl secrets set AUTH_SIGN_KEY=${{ secrets.AUTH_SESSION_COOKIE_SIGNING_SECRET_KEY }}
+      - name: Set Cloudflare Token
+        run: flyctl secrets set CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_WORKERS_API_SECRET }}
+      - name: Set Google Secret
+        run: flyctl secrets set GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_SECRET }}
+      - name: Deploy a docker container to Fly.io
+        run: flyctl deploy --remote-only --build-arg CLOUDFLARE_ACCOUNT_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_ACCOUNT_ID }} --build-arg CLOUDFLARE_NAMESPACE_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_NAMESPACE_ID }} --build-arg GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_ID }}
