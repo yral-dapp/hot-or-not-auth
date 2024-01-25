@@ -37,15 +37,15 @@ jobs:
       - name: Set Auth Key
         env:
           FLY_API_TOKEN: ${{ secrets.HOT_OR_NOT_AUTH_FLY_IO_GITHUB_ACTION }}
-        run: flyctl secrets set AUTH_SIGN_KEY=${{ secrets.AUTH_SESSION_COOKIE_SIGNING_SECRET_KEY }}
+        run: flyctl secrets set AUTH_SIGN_KEY=${{ secrets.AUTH_SESSION_COOKIE_SIGNING_SECRET_KEY }} --stage
       - name: Set Cloudflare Token
         env:
           FLY_API_TOKEN: ${{ secrets.HOT_OR_NOT_AUTH_FLY_IO_GITHUB_ACTION }}
-        run: flyctl secrets set CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_WORKERS_API_SECRET }}
+        run: flyctl secrets set CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_WORKERS_API_SECRET }} --stage
       - name: Set Google Secret
         env:
           FLY_API_TOKEN: ${{ secrets.HOT_OR_NOT_AUTH_FLY_IO_GITHUB_ACTION }}
-        run: flyctl secrets set GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_SECRET }}
+        run: flyctl secrets set GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_SECRET }} --stage
       - name: Deploy a docker container to Fly.io
         env:
           FLY_API_TOKEN: ${{ secrets.HOT_OR_NOT_AUTH_FLY_IO_GITHUB_ACTION }}
