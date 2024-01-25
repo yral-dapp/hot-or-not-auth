@@ -34,24 +34,11 @@ jobs:
           LEPTOS_BIN_TARGET_TRIPLE: x86_64-unknown-linux-gnu
         run: cargo leptos build --release
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - name: config setup
-        run: |
-          echo auth_ic_url = \"https://ic0.app\" > AuthConfig.toml
-          echo auth_sign_key = \"$AUTH_SIGN_KEY\" >> AuthConfig.toml
-          echo cloudflare_namespace_identifier = \"$CLOUDFLARE_NAMESPACE_IDENTIFIER\" >> AuthConfig.toml
-          echo cloudflare_api_token = \"$CLOUDFLARE_API_TOKEN\" >> AuthConfig.toml
-          echo cloudflare_account_identifier = \"$CLOUDFLARE_ACCOUNT_IDENTIFIER\" >> AuthConfig.toml
-          echo google_client_id = \"$GOOGLE_CLIENT_ID\" >> AuthConfig.toml
-          echo google_client_secret = \"$GOOGLE_CLIENT_SECRET\" >> AuthConfig.toml
-          echo google_auth_landing_url = \"https://hot-or-not-auth.fly.dev/google_oauth2_response\" >> AuthConfig.toml
-        env:
-          AUTH_SIGN_KEY: ${{ secrets.AUTH_SESSION_COOKIE_SIGNING_SECRET_KEY }}
-          CLOUDFLARE_NAMESPACE_IDENTIFIER: ${{ secrets.CLOUDFLARE_WORKERS_KV_NAMESPACE_ID }}
-          CLOUDFLARE_ACCOUNT_IDENTIFIER: ${{ secrets.CLOUDFLARE_WORKERS_KV_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_API_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_SECRET }}
       - name: Deploy a docker container to Fly.io
         env:
           FLY_API_TOKEN: ${{ secrets.HOT_OR_NOT_AUTH_FLY_IO_GITHUB_ACTION }}
-        run: flyctl deploy --remote-only
+        run: |
+          flyctl secrets set AUTH_SIGN_KEY=${{ secrets.AUTH_SESSION_COOKIE_SIGNING_SECRET_KEY }}
+          flyctl secrets set CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_WORKERS_API_SECRET }}
+          flyctl secrets set GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_SECRET }}
+          flyctl deploy --remote-only --build-arg CLOUDFLARE_ACCOUNT_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_ACCOUNT_ID }} --build-arg CLOUDFLARE_NAMESPACE_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_NAMESPACE_ID }} --build-arg GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_ID }}
