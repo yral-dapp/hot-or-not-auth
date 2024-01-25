@@ -37,7 +37,7 @@ jobs:
       - name: Set Auth Key
         env:
           FLY_API_TOKEN: ${{ secrets.HOT_OR_NOT_AUTH_FLY_IO_GITHUB_ACTION }}
-        run: fly secrets set --stage AUTH_SIGN_KEY=${{ secrets.AUTH_SESSION_COOKIE_SIGNING_SECRET_KEY }}
+        run: flyctl secrets set --stage AUTH_SIGN_KEY=${{ secrets.AUTH_SESSION_COOKIE_SIGNING_SECRET_KEY }}
       - name: Set Cloudflare Token
         env:
           FLY_API_TOKEN: ${{ secrets.HOT_OR_NOT_AUTH_FLY_IO_GITHUB_ACTION }}
