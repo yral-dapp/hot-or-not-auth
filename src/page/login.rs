@@ -3,16 +3,8 @@ use leptos_router::A;
 
 #[component]
 pub fn LandingPage() -> impl IntoView {
-    // use crate::providers::google::GoogleAuthUrl;
-
-    // let oauth2_url = Action::<GoogleAuthUrl, _>::server();
-    // create_effect(move |_| {
-    //     if let Some(Ok(redirect)) = oauth2_url.value().get() {
-    //         // let navigate = leptos_router::use_navigate();
-    //         // navigate(&redirect, Default::default());
-    //         window().location().set_href(&redirect).unwrap();
-    //     }
-    // });
+    // check if valid cookie with session
+    // if not show error message
 
     view! {
     <div class="fade-in absolute z-[100] block h-full w-full bg-black/90 text-white">
