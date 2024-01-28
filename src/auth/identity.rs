@@ -17,13 +17,11 @@ use tokio::sync::RwLock;
 use tracing::log::info;
 
 #[server(endpoint = "generate_session")]
-pub async fn generate_session() -> Result<SessionResponse, ServerFnError> {
+pub async fn generate_session() -> Result<agent_js::SessionResponse, ServerFnError> {
     let identity_keeper: IdentityKeeper = use_context::<IdentityKeeper>().unwrap();
     let mut jar =
-        leptos_axum::extract_with_state::<SignedCookieJar<Key>, IdentityKeeper, ServerFnErrorErr>(
-            &identity_keeper,
-        )
-        .await?;
+        leptos_axum::extract_with_state::<SignedCookieJar<Key>, IdentityKeeper>(&identity_keeper)
+            .await?;
 
     let user_identity: Option<String> = match jar.get("user_identity") {
         Some(val) => Some(val.value().to_owned()),
@@ -85,8 +83,11 @@ pub async fn generate_session() -> Result<SessionResponse, ServerFnError> {
         Box::new(client_temp_identity.clone()),
         vec![signed_delegation.clone()],
     );
-    info!("{}", client_identity.sender().unwrap());
-    info!("{}", delegated_identity.sender().unwrap());
+    info!("client_identity: {}", client_identity.sender().unwrap());
+    info!(
+        "delegated_identity: {}",
+        delegated_identity.sender().unwrap()
+    );
     // let sender_principal = delegated_identity.sender().unwrap().to_text();
 
     let inner_pubkey = client_temp_identity.public_key().unwrap();
@@ -112,12 +113,12 @@ pub async fn generate_session() -> Result<SessionResponse, ServerFnError> {
             public_key: signature_pubkey.clone(),
         },
     };
-    let session_response = SessionResponse {
+    let session_response = agent_js::SessionResponse {
         user_identity: user_key_pair.public_key.to_owned(),
         delegation_identity: shareable_delegated_identity,
     };
 
-    info!("{}", user_key_pair.public_key);
+    info!("user_pubkey: {}", user_key_pair.public_key);
 
     let mut user_cookie = Cookie::new("user_identity", user_key_pair.public_key.to_owned());
     user_cookie.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
@@ -147,12 +148,6 @@ pub async fn generate_session() -> Result<SessionResponse, ServerFnError> {
 // ) -> Json<SessionResponse> {
 // }
 
-#[derive(Serialize, Deserialize)]
-pub struct SessionResponse {
-    user_identity: String,
-    delegation_identity: agent_js::DelegationIdentity,
-}
-
 #[derive(Clone)]
 pub struct IdentityKeeper {
     pub leptos_options: LeptosOptions,
@@ -160,6 +155,7 @@ pub struct IdentityKeeper {
     pub oauth_map: Arc<RwLock<HashMap<String, generate::KeyPair>>>,
     pub key: Key,
     pub oauth2_client: oauth2::basic::BasicClient,
+    pub reqwest_client: reqwest::Client,
 }
 
 impl FromRef<IdentityKeeper> for Key {
