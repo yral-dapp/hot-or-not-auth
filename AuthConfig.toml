@@ -1,6 +1,6 @@
-# auth_ic_url = "https://ic0.app"
-auth_ic_url = "http://127.0.0.1:4943"
-auth_sign_key = ""
+auth_ic_url = "https://ic0.app"
+auth_sign_key = "BSAtB47+LbXtk187VNC1VS+CoinIuW7jc6qLNJnM6Mscc0cOJ4EOMWthi2Tqf/R/xAboBFLkaULVSuJpHV3ajlVJ1uk2WvyWZGHavwllWz47w7z2PQKSjTN81sn8KUgReLsk/pwf/ZvYCG4BY4k3aFKPuO2ByZ4S6mKfKHfqg5BoRslIZOpVkNjd3U1mjjv/49/hCkJzi0G7pIYDrijdQbGeLZpiKiGnPPEzp450g/uZY0by4wY+Ud3rqJuvqbUpQrhAgDedbLp5jDV9yhiu8emIskVC2z+eTXJFC37ulNA4iAtllrmJUVR7Mi9AZsyc/sxNQldsGQu9aSeOPq8yaPGxeWHdU3O4nefZN/gsTF2rXTvKOkG/QPRY80iJoToilj5mV4bu7tPhhVekOMhLlNapmAfX3Wp9LskuxrDQl+peDrJAQ9Sc9Mek3T2mcEcPZ4LVMIuojTGXat6HHXq/jlTUA6lGGLotmkLlzpJSDfWJei0jmn+MpiU8q1u62K4eVYhOtlrZmpu6SNrSzxMX3EmSvkEeVjwqRa9K1PHFD64myVqkxl1iQ4kZH4HIeAG6xKeUMAZqpuC7gJnGZITl6LSvVEyrfeErPoxTlqHzk+Uixy5YmKknKph3g2XqrEcMMKLUH1BjU+y47VSazF2cEUiRqqixexChL1JaztIvGD4="
+auth_cookie_domain = "hot-or-not-web-leptos-ssr.fly.dev"
 
 # cloudflare_configs
 cloudflare_account_identifier = ""
@@ -8,6 +8,6 @@ cloudflare_api_token = ""
 cloudflare_namespace_identifier = ""
 
 # oauth_configs
-google_auth_landing_url = "http://localhost:3000/google_oauth2_response"
+google_auth_landing_url = "https://hot-or-not-auth.fly.dev/google_oauth2_response"
 google_client_id = ""
 google_client_secret = ""

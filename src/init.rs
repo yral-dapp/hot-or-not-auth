@@ -48,6 +48,7 @@ pub fn oauth2_client_init(auth_config: &AuthConfig) -> oauth2::basic::BasicClien
 pub struct AuthConfig {
     pub auth_ic_url: String,
     pub auth_sign_key: String,
+    pub auth_cookie_domain: String,
     pub cloudflare_account_identifier: String,
     pub cloudflare_namespace_identifier: String,
     pub cloudflare_api_token: String,

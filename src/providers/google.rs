@@ -57,14 +57,12 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     info!("b4 csrf sec: {}", csrf_token);
 
     let mut pkce_verifier = Cookie::new("pkce_verifier", pkce_verifier.to_owned());
-    // pkce_verifier.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
-    pkce_verifier.set_domain("localhost");
+    pkce_verifier.set_domain(identity_keeper.auth_cookie_domain);
     pkce_verifier.set_http_only(true);
     jar = jar.remove(Cookie::from("pkce_verifier"));
     jar = jar.add(pkce_verifier.clone());
     let mut csrf_token = Cookie::new("csrf_token", csrf_token.to_owned());
-    // csrf_token.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
-    csrf_token.set_domain("localhost");
+    csrf_token.set_domain(identity_keeper.auth_cookie_domain);
     csrf_token.set_http_only(true);
     jar = jar.remove(Cookie::from("csrf_token"));
     jar = jar.add(csrf_token.clone());
