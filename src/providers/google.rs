@@ -57,7 +57,7 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     info!("b4 csrf sec: {}", csrf_token);
 
     let mut pkce_verifier = Cookie::new("pkce_verifier", pkce_verifier.to_owned());
-    pkce_verifier.set_domain(identity_keeper.auth_cookie_domain);
+    pkce_verifier.set_domain(identity_keeper.auth_cookie_domain.clone());
     pkce_verifier.set_http_only(true);
     jar = jar.remove(Cookie::from("pkce_verifier"));
     jar = jar.add(pkce_verifier.clone());
