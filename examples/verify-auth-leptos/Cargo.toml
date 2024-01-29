@@ -8,35 +8,35 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 axum = { version = "0.7", optional = true }
+cfg-if = "1.0"
 console_error_panic_hook = "0.1"
 console_log = "1.0"
-cfg-if = "1.0"
-leptos = { version = "0.5", features = ["nightly"] }
-leptos_axum = { version = "0.6.0-alpha", optional = true }
-leptos_meta = { version = "0.5", features = ["nightly"] }
-leptos_router = { version = "0.5", features = ["nightly"] }
+http = "1.0"
+leptos = { version = "0.6", features = ["nightly"] }
+leptos_axum = { version = "0.6", optional = true }
+leptos_meta = { version = "0.6", features = ["nightly"] }
+leptos_router = { version = "0.6", features = ["nightly"] }
 log = "0.4"
 simple_logger = "4.3"
+thiserror = "1.0"
 tokio = { version = "1.35", optional = true }
 tower = { version = "0.4", optional = true }
 tower-http = { version = "0.5", features = ["fs"], optional = true }
-wasm-bindgen = "=0.2"
-thiserror = "1.0"
 tracing = { version = "0.1", optional = true }
-http = "1.0"
+wasm-bindgen = "=0.2"
 
 [features]
 hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
 ssr = [
     "dep:axum",
+    "dep:leptos_axum",
     "dep:tokio",
     "dep:tower",
     "dep:tower-http",
-    "dep:leptos_axum",
+    "dep:tracing",
     "leptos/ssr",
     "leptos_meta/ssr",
     "leptos_router/ssr",
-    "dep:tracing",
 ]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
@@ -67,7 +67,7 @@ style-file = "style/main.scss"
 assets-dir = "public"
 
 # The IP and port (ex: 127.0.0.1:3000) where the server serves the content. Use it in your server setup.
-site-addr = "127.0.0.1:3000"
+site-addr = "127.0.0.1:8000"
 
 # The port to use for automatic reload monitoring
 reload-port = 3001
@@ -75,8 +75,8 @@ reload-port = 3001
 # [Optional] Command to use when running end2end tests. It will run in the end2end dir.
 #   [Windows] for non-WSL use "npx.cmd playwright test"
 #   This binary name can be checked in Powershell with Get-Command npx
-end2end-cmd = "npx playwright test"
-end2end-dir = "end2end"
+# end2end-cmd = "npx playwright test"
+# end2end-dir = "end2end"
 
 #  The browserlist query used for optimizing the CSS.
 browserquery = "defaults"
@@ -96,6 +96,11 @@ bin-features = ["ssr"]
 #
 # Optional. Defaults to false.
 bin-default-features = false
+
+# The target triple to use when compiling the bin target
+#
+# Optional. Env: LEPTOS_BIN_TARGET_TRIPLE
+bin-target-triple = "x86_64-unknown-linux-gnu"
 
 # The features to use when compiling the lib target
 #

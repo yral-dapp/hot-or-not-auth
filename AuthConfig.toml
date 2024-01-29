@@ -1,6 +1,6 @@
-# auth_ic_url = "https://ic0.app"
-auth_ic_url = "http://127.0.0.1:4943"
+auth_ic_url = "https://ic0.app"
 auth_sign_key = ""
+auth_cookie_domain = "hot-or-not-web-leptos-ssr.fly.dev"
 
 # cloudflare_configs
 cloudflare_account_identifier = ""
@@ -8,6 +8,6 @@ cloudflare_api_token = ""
 cloudflare_namespace_identifier = ""
 
 # oauth_configs
-google_auth_landing_url = "http://localhost:3000/google_oauth2_response"
+google_auth_landing_url = "https://hot-or-not-auth.fly.dev/google_oauth2_response"
 google_client_id = ""
 google_client_secret = ""

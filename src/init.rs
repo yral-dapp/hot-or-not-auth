@@ -46,12 +46,13 @@ pub fn oauth2_client_init(auth_config: &AuthConfig) -> oauth2::basic::BasicClien
 
 #[derive(Deserialize, Clone)]
 pub struct AuthConfig {
+    pub auth_cookie_domain: String,
     pub auth_ic_url: String,
     pub auth_sign_key: String,
     pub cloudflare_account_identifier: String,
-    pub cloudflare_namespace_identifier: String,
     pub cloudflare_api_token: String,
+    pub cloudflare_namespace_identifier: String,
+    pub google_auth_landing_url: String,
     pub google_client_id: String,
     pub google_client_secret: String,
-    pub google_auth_landing_url: String,
 }

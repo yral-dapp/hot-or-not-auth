@@ -57,14 +57,12 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     info!("b4 csrf sec: {}", csrf_token);
 
     let mut pkce_verifier = Cookie::new("pkce_verifier", pkce_verifier.to_owned());
-    // pkce_verifier.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
-    pkce_verifier.set_domain("localhost");
+    pkce_verifier.set_domain(identity_keeper.auth_cookie_domain.clone());
     pkce_verifier.set_http_only(true);
     jar = jar.remove(Cookie::from("pkce_verifier"));
     jar = jar.add(pkce_verifier.clone());
     let mut csrf_token = Cookie::new("csrf_token", csrf_token.to_owned());
-    // csrf_token.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
-    csrf_token.set_domain("localhost");
+    csrf_token.set_domain(identity_keeper.auth_cookie_domain);
     csrf_token.set_http_only(true);
     jar = jar.remove(Cookie::from("csrf_token"));
     jar = jar.add(csrf_token.clone());
@@ -170,8 +168,8 @@ async fn google_verify_response(
 
 #[wasm_bindgen::prelude::wasm_bindgen]
 extern "C" {
-    #[wasm_bindgen::prelude::wasm_bindgen(js_namespace = ["window", "top"])]
-    pub fn postMessage(message: &str, target_origin: &str);
+    #[wasm_bindgen::prelude::wasm_bindgen(js_namespace = ["window", "top"], js_name = "postMessage")]
+    pub fn post_message(message: &str, target_origin: &str);
 }
 
 #[component]
@@ -185,9 +183,9 @@ pub fn OAuth2Response() -> impl IntoView {
             leptos::logging::log!("session response: {:?}", session_response);
             // TODO: targetOrigin to be updated from config
             match serde_json::to_string(&session_response) {
-                Ok(session) => postMessage(session.as_str(), "*"),
+                Ok(session) => post_message(session.as_str(), "*"),
                 Err(error) => {
-                    postMessage(error.to_string().as_str(), "*");
+                    post_message(error.to_string().as_str(), "*");
                 }
             }
             // navigate("/", NavigateOptions::default());

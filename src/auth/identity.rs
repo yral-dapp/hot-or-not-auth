@@ -156,6 +156,7 @@ pub struct IdentityKeeper {
     pub key: Key,
     pub oauth2_client: oauth2::basic::BasicClient,
     pub reqwest_client: reqwest::Client,
+    pub auth_cookie_domain: String,
 }
 
 impl FromRef<IdentityKeeper> for Key {

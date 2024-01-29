@@ -25,6 +25,7 @@ mod handlers {
         path: Path<String>,
         request: Request<AxumBody>,
     ) -> impl IntoResponse {
+        info!("path: {}", path.as_str());
         handle_server_fns_with_context(
             move || {
                 provide_context(app_state.clone());
@@ -80,6 +81,7 @@ async fn main() {
         routes: routes.clone(),
         oauth2_client,
         reqwest_client: reqwest::Client::new(),
+        auth_cookie_domain: auth_config.auth_cookie_domain,
     };
     let identity_keeper: identity::IdentityKeeper = identity_keeper;
     let service = ServiceBuilder::new().layer(CorsLayer::permissive());
