@@ -25,6 +25,7 @@ mod handlers {
         path: Path<String>,
         request: Request<AxumBody>,
     ) -> impl IntoResponse {
+        info!("path: {}", path.as_str());
         handle_server_fns_with_context(
             move || {
                 provide_context(app_state.clone());

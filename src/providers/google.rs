@@ -168,8 +168,8 @@ async fn google_verify_response(
 
 #[wasm_bindgen::prelude::wasm_bindgen]
 extern "C" {
-    #[wasm_bindgen::prelude::wasm_bindgen(js_namespace = ["window", "top"])]
-    pub fn postMessage(message: &str, target_origin: &str);
+    #[wasm_bindgen::prelude::wasm_bindgen(js_namespace = ["window", "top"], js_name = "postMessage")]
+    pub fn post_message(message: &str, target_origin: &str);
 }
 
 #[component]
@@ -183,9 +183,9 @@ pub fn OAuth2Response() -> impl IntoView {
             leptos::logging::log!("session response: {:?}", session_response);
             // TODO: targetOrigin to be updated from config
             match serde_json::to_string(&session_response) {
-                Ok(session) => postMessage(session.as_str(), "*"),
+                Ok(session) => post_message(session.as_str(), "*"),
                 Err(error) => {
-                    postMessage(error.to_string().as_str(), "*");
+                    post_message(error.to_string().as_str(), "*");
                 }
             }
             // navigate("/", NavigateOptions::default());
