@@ -2,10 +2,11 @@ use crate::connect::EndPoint;
 use reqwest::Method;
 
 // https://developers.cloudflare.com/api/operations/workers-kv-namespace-read-key-value-pair
+#[derive(Debug)]
 pub struct ReadKV<'a> {
-    account_identifier: &'a str,
-    namespace_identifier: &'a str,
-    key_name: &'a str,
+    pub account_identifier: &'a str,
+    pub namespace_identifier: &'a str,
+    pub key_name: &'a str,
 }
 
 impl<'a> EndPoint<String> for ReadKV<'a> {

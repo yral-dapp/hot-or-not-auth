@@ -5,11 +5,10 @@ mod fileserve;
 mod init;
 mod page;
 mod providers;
-// mod store;
 
 #[cfg(feature = "ssr")]
 mod handlers {
-    use crate::{app::App, auth::identity::IdentityKeeper};
+    use crate::{app::App, auth::identity::AppState};
     use axum::{
         body::Body as AxumBody,
         extract::{Path, State},
@@ -21,7 +20,7 @@ mod handlers {
     use tracing::log::info;
 
     pub async fn server_fn_handler(
-        State(app_state): State<IdentityKeeper>,
+        State(app_state): State<AppState>,
         path: Path<String>,
         request: Request<AxumBody>,
     ) -> impl IntoResponse {
@@ -36,7 +35,7 @@ mod handlers {
     }
 
     pub async fn leptos_routes_handler(
-        State(app_state): State<IdentityKeeper>,
+        State(app_state): State<AppState>,
         req: Request<AxumBody>,
     ) -> Response {
         let handler = leptos_axum::render_route_with_context(
@@ -68,22 +67,24 @@ async fn main() {
     init::logging();
     let auth_config = init::configure();
     let oauth2_client = init::oauth2_client_init(&auth_config);
+    let cloudflare_config = init::cloudflare_config(&auth_config);
 
     let conf = get_configuration(None).await.unwrap();
     let leptos_options = conf.leptos_options;
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(App);
 
-    let identity_keeper = identity::IdentityKeeper {
+    let app_state = identity::AppState {
         leptos_options,
-        oauth_map: Arc::new(RwLock::new(HashMap::new())),
+        // oauth_map: Arc::new(RwLock::new(HashMap::new())),
         key: Key::from(auth_config.auth_sign_key.as_bytes()),
         routes: routes.clone(),
         oauth2_client,
         reqwest_client: reqwest::Client::new(),
         auth_cookie_domain: auth_config.auth_cookie_domain,
+        cloudflare_config,
     };
-    let identity_keeper: identity::IdentityKeeper = identity_keeper;
+    let app_state: identity::AppState = app_state;
     let service = ServiceBuilder::new().layer(CorsLayer::permissive());
 
     let app = Router::new()
@@ -94,7 +95,7 @@ async fn main() {
         .leptos_routes_with_handler(routes, get(leptos_routes_handler))
         .fallback(file_and_error_handler)
         .layer(service)
-        .with_state(identity_keeper);
+        .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     axum::serve(listener, app.into_make_service())

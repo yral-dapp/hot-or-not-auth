@@ -9,7 +9,7 @@ cfg_if! {
 if #[cfg(feature="ssr")] {
 use axum::{http::header, response::IntoResponse};
 use axum_extra::extract::cookie::{Cookie, Key, PrivateCookieJar, SignedCookieJar};
-use crate::auth::{identity::{IdentityKeeper, generate_session}};
+use crate::auth::{identity::{AppState, generate_session}};
 use leptos_axum::ResponseOptions;
 use oauth2::{reqwest::{async_http_client}, AuthorizationCode, CsrfToken, PkceCodeVerifier, PkceCodeChallenge, Scope};
 use tracing::log::{info, error};
@@ -18,13 +18,12 @@ use tracing::log::{info, error};
 
 #[server]
 async fn google_auth_url() -> Result<String, ServerFnError> {
-    let identity_keeper =
-        use_context::<IdentityKeeper>().ok_or_else(|| ServerFnError::new("Context not found!"))?;
+    let app_state =
+        use_context::<AppState>().ok_or_else(|| ServerFnError::new("Context not found!"))?;
 
     // enable after integration
     let signed_jar: SignedCookieJar =
-        leptos_axum::extract_with_state::<SignedCookieJar<Key>, IdentityKeeper>(&identity_keeper)
-            .await?;
+        leptos_axum::extract_with_state::<SignedCookieJar<Key>, AppState>(&app_state).await?;
     /*
     let _user_identity = match signed_jar.get("user_identity") {
         Some(val) => Some(val.value().to_owned()),
@@ -34,9 +33,8 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     */
 
     let mut jar: PrivateCookieJar =
-        leptos_axum::extract_with_state::<PrivateCookieJar<Key>, IdentityKeeper>(&identity_keeper)
-            .await?;
-    let client = identity_keeper.oauth2_client;
+        leptos_axum::extract_with_state::<PrivateCookieJar<Key>, AppState>(&app_state).await?;
+    let client = app_state.oauth2_client;
 
     // Generate a PKCE challenge.
     let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
@@ -57,12 +55,12 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     info!("b4 csrf sec: {}", csrf_token);
 
     let mut pkce_verifier = Cookie::new("pkce_verifier", pkce_verifier.to_owned());
-    pkce_verifier.set_domain(identity_keeper.auth_cookie_domain.clone());
+    pkce_verifier.set_domain(app_state.auth_cookie_domain.clone());
     pkce_verifier.set_http_only(true);
     jar = jar.remove(Cookie::from("pkce_verifier"));
     jar = jar.add(pkce_verifier.clone());
     let mut csrf_token = Cookie::new("csrf_token", csrf_token.to_owned());
-    csrf_token.set_domain(identity_keeper.auth_cookie_domain);
+    csrf_token.set_domain(app_state.auth_cookie_domain);
     csrf_token.set_http_only(true);
     jar = jar.remove(Cookie::from("csrf_token"));
     jar = jar.add(csrf_token.clone());
@@ -100,13 +98,12 @@ async fn google_verify_response(
     provided_csrf: String,
     code: String,
 ) -> Result<SessionResponse, ServerFnError> {
-    let identity_keeper =
-        use_context::<IdentityKeeper>().ok_or_else(|| ServerFnError::new("Context not found!"))?;
+    let app_state =
+        use_context::<AppState>().ok_or_else(|| ServerFnError::new("Context not found!"))?;
     let jar: PrivateCookieJar =
-        leptos_axum::extract_with_state::<PrivateCookieJar<Key>, IdentityKeeper>(&identity_keeper)
-            .await?;
+        leptos_axum::extract_with_state::<PrivateCookieJar<Key>, AppState>(&app_state).await?;
 
-    let client = identity_keeper.oauth2_client;
+    let client = app_state.oauth2_client;
     let csrf_token = jar
         .get("csrf_token")
         .map(|cookie| cookie.value().to_owned())
@@ -137,7 +134,7 @@ async fn google_verify_response(
         None => {}
     }
     let user_info_url = "https://www.googleapis.com/oauth2/v3/userinfo";
-    let response = identity_keeper
+    let response = app_state
         .reqwest_client
         .get(user_info_url)
         .bearer_auth(access_token)

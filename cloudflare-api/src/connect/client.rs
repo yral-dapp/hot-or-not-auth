@@ -1,15 +1,31 @@
-use crate::connect::{AuthClient, Credentials};
+use crate::connect::Credentials;
 use reqwest::{header, Client, Error, Method, RequestBuilder};
 use serde::Deserialize;
 
 use super::EndPoint;
 
+#[derive(Debug, Clone)]
 pub struct HttpApiClient {
     client: Client,
 }
 
 impl HttpApiClient {
-    pub fn new(client: Client) -> HttpApiClient {
+    pub fn new(credentials: &Credentials) -> HttpApiClient {
+        let mut headers = header::HeaderMap::new();
+        for header in credentials.headers() {
+            let mut auth_header = header::HeaderValue::from_str(&header.1).unwrap();
+            auth_header.set_sensitive(true);
+            headers.insert(header.0, auth_header);
+        }
+        headers.insert(
+            header::ACCEPT,
+            header::HeaderValue::from_static("application/json"),
+        );
+        // TODO: Replace expect() and handle error gracefully
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()
+            .expect("Could not initialize connection with Cloudflare V4 API!");
         HttpApiClient { client }
     }
 
@@ -42,23 +58,9 @@ impl HttpApiClient {
     }
 }
 
-impl AuthClient for HttpApiClient {
-    fn client(&mut self, credentials: &Credentials) -> &Self {
-        let mut headers = header::HeaderMap::new();
-        for header in credentials.headers() {
-            let mut auth_header = header::HeaderValue::from_str(&header.1).unwrap();
-            auth_header.set_sensitive(true);
-            headers.insert(header.0, auth_header);
-        }
-        headers.insert(
-            header::ACCEPT,
-            header::HeaderValue::from_static("application/json"),
-        );
-        // TODO: Replace expect() and handle error gracefully
-        self.client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()
-            .expect("Could not initialize connection with Cloudflare V4 API!");
-        self
-    }
+#[derive(Debug, Clone)]
+pub struct ApiClientConfig {
+    pub account_identifier: String,
+    pub namespace_identifier: String,
+    pub cloudflare_client: HttpApiClient,
 }

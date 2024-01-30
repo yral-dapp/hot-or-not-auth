@@ -4,15 +4,15 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct CloudflareResponse<T> {
-    errors: Vec<Info>,
-    messages: Vec<Info>,
-    result: T,
-    result_info: Option<String>,
-    success: bool,
+    pub errors: Vec<Info>,
+    pub messages: Vec<Info>,
+    pub result: T,
+    pub result_info: Option<String>,
+    pub success: bool,
 }
 
 #[derive(Deserialize)]
-struct Info {
-    code: u32,
-    message: String,
+pub struct Info {
+    pub code: u32,
+    pub message: String,
 }
