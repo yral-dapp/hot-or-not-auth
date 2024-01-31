@@ -30,6 +30,18 @@ pub fn configure() -> AuthConfig {
 }
 
 #[cfg(feature = "ssr")]
+pub fn cloudflare_config(config: &AuthConfig) -> cloudflare_api::connect::ApiClientConfig {
+    use cloudflare_api::connect::{ApiClientConfig, Credentials, HttpApiClient};
+    ApiClientConfig {
+        account_identifier: config.cloudflare_account_identifier.clone(),
+        namespace_identifier: config.cloudflare_namespace_identifier.clone(),
+        cloudflare_client: HttpApiClient::new(&Credentials::UserAuthToken {
+            token: config.cloudflare_api_token.clone(),
+        }),
+    }
+}
+
+#[cfg(feature = "ssr")]
 pub fn oauth2_client_init(auth_config: &AuthConfig) -> oauth2::basic::BasicClient {
     oauth2::basic::BasicClient::new(
         oauth2::ClientId::new(auth_config.google_client_id.to_owned()),

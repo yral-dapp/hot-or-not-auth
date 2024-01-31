@@ -1422,6 +1422,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "axum-extra",
+ "base64 0.21.7",
  "bip32",
  "cfg-if",
  "chrono",

@@ -1,21 +1,23 @@
 use crate::{connect::EndPoint, endpoints::CloudflareResponse};
 use reqwest::Method;
+use std::collections::HashMap;
 
-// https://developers.cloudflare.com/api/operations/workers-kv-namespace-delete-key-value-pair
-pub struct DeleteKV<'a> {
+// https://developers.cloudflare.com/api/operations/workers-kv-namespace-read-the-metadata-for-a-key
+#[derive(Debug)]
+pub struct ReadMetadata<'a> {
     pub account_identifier: &'a str,
     pub namespace_identifier: &'a str,
     pub key_name: &'a str,
 }
 
-impl<'a> EndPoint<CloudflareResponse<String>> for DeleteKV<'a> {
+impl<'a> EndPoint<CloudflareResponse<HashMap<String, String>>> for ReadMetadata<'a> {
     fn method(&self) -> Method {
-        Method::DELETE
+        Method::GET
     }
 
     fn path(&self) -> String {
         format!(
-            "/accounts/{}/storage/kv/namespaces/{}/values/{}",
+            "/accounts/{}/storage/kv/namespaces/{}/metadata/{}",
             self.account_identifier, self.namespace_identifier, self.key_name,
         )
     }

@@ -1,5 +1,6 @@
 use reqwest::multipart::Form;
 use std::{borrow::Cow, collections::HashMap};
+use tracing::log::info;
 use url::Url;
 
 pub trait EndPoint<T> {
@@ -38,9 +39,9 @@ pub trait EndPoint<T> {
 
     // TODO: make URL configurable
     fn url(&self) -> String {
-        let mut url = Url::parse("https://api.cloudflare.com/client/v4")
+        let mut url = Url::parse("https://api.cloudflare.com")
             .unwrap()
-            .join(serde_urlencoded::to_string(self.path()).as_deref().unwrap())
+            .join(&format!("/client/v4{}", &self.path()))
             .unwrap();
         url.set_query(self.serialize_query().as_deref());
         url.to_string()

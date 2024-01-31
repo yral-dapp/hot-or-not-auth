@@ -3,6 +3,7 @@ mod auth;
 mod error_template;
 mod page;
 mod providers;
+mod store;
 
 cfg_if::cfg_if! { if #[cfg(feature = "hydrate")] {
     use leptos::*;

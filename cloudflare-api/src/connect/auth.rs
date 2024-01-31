@@ -18,7 +18,3 @@ impl Credentials {
         }
     }
 }
-
-pub trait AuthClient {
-    fn client(&mut self, credentials: &Credentials) -> &Self;
-}

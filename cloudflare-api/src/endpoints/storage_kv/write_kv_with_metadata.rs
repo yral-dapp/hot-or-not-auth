@@ -1,15 +1,16 @@
 use crate::{connect::EndPoint, endpoints::CloudflareResponse};
 use reqwest::multipart::Form;
 use std::{borrow::Cow, collections::HashMap};
+use tracing::log::info;
 
 // https://developers.cloudflare.com/api/operations/workers-kv-namespace-write-key-value-pair-with-metadata
 #[derive(Debug)]
 pub struct WriteKVWithMetadata<'a> {
-    account_identifier: &'a str,
-    namespace_identifier: &'a str,
-    key_name: &'a str,
-    metadata: HashMap<&'a str, &'a str>,
-    value: &'a str,
+    pub account_identifier: &'a str,
+    pub namespace_identifier: &'a str,
+    pub key_name: &'a str,
+    pub value: &'a str,
+    pub metadata: HashMap<&'a str, &'a str>,
 }
 
 impl<'a> EndPoint<CloudflareResponse<String>> for WriteKVWithMetadata<'a> {
