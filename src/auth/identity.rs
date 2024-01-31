@@ -1,7 +1,8 @@
 use super::{agent_js, generate};
-use crate::store::cloudflare::{read_metadata, write_kv};
+use crate::store::cloudflare::{read_kv, read_metadata, write_kv};
 use axum::{extract::FromRef, http::header, response::IntoResponse};
 use axum_extra::extract::cookie::{Cookie, Key, SignedCookieJar};
+use base64::{engine::general_purpose, Engine as _};
 use chrono::{Duration, Utc};
 use ic_agent::{
     identity::{DelegatedIdentity, Delegation, Secp256k1Identity, SignedDelegation},
@@ -10,6 +11,7 @@ use ic_agent::{
 use leptos::*;
 use leptos_axum::ResponseOptions;
 use leptos_router::RouteListing;
+use std::collections::HashMap;
 use tracing::log::info;
 
 #[server(endpoint = "generate_session")]
@@ -28,19 +30,41 @@ pub async fn generate_session() -> Result<agent_js::SessionResponse, ServerFnErr
     let user_key_pair: Option<generate::KeyPair> = if user_identity.is_none() {
         None
     } else {
-        read_metadata(&user_identity.unwrap(), &app_state.cloudflare_config).unwrap()
-        // let read_access = app_state.oauth_map.read().await;
-        // read_access.get(&user_identity.unwrap()).cloned()
+        let public_key = user_identity.unwrap();
+        let private_key = read_kv(&public_key, &app_state.cloudflare_config)
+            .await
+            .unwrap();
+        let private_key = general_purpose::STANDARD_NO_PAD
+            .decode(private_key)
+            .unwrap();
+        let metadata: HashMap<String, String> =
+            read_metadata(&public_key, &app_state.cloudflare_config)
+                .await
+                .unwrap();
+        let private_pem = metadata.get("private_pem").unwrap();
+        Some(generate::KeyPair {
+            public_key,
+            private_key,
+            private_pem: private_pem.to_owned(),
+        })
     };
     let user_key_pair = match user_key_pair {
         Some(kp) => kp,
         None => {
             let new_key_pair = generate::key_pair().unwrap();
             {
-                let write_access = app_state.oauth_map.write();
-                write_access
-                    .await
-                    .insert(new_key_pair.public_key.to_owned(), new_key_pair.clone());
+                let private_key =
+                    general_purpose::STANDARD_NO_PAD.encode(&new_key_pair.private_key);
+                let mut metadata = HashMap::new();
+                metadata.insert("private_pem", new_key_pair.private_pem.as_str());
+                let _ = write_kv(
+                    &new_key_pair.public_key,
+                    &private_key,
+                    metadata,
+                    app_state.cloudflare_config,
+                )
+                .await
+                .unwrap();
             }
             new_key_pair
         }

@@ -5,6 +5,7 @@ mod fileserve;
 mod init;
 mod page;
 mod providers;
+mod store;
 
 #[cfg(feature = "ssr")]
 mod handlers {

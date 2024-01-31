@@ -1,8 +1,8 @@
+use super::EndPoint;
 use crate::connect::Credentials;
 use reqwest::{header, Client, Error, Method, RequestBuilder};
 use serde::Deserialize;
-
-use super::EndPoint;
+use tracing::{instrument::WithSubscriber, log::info};
 
 #[derive(Debug, Clone)]
 pub struct HttpApiClient {
@@ -33,17 +33,21 @@ impl HttpApiClient {
     where
         for<'de> T: Deserialize<'de>,
     {
-        let mut request_builder = self
-            .request_builder(end_point.url().as_str(), end_point.method())
-            .header(header::CONTENT_TYPE, end_point.content_type().as_ref());
+        let mut request_builder =
+            self.request_builder(end_point.url().as_str(), end_point.method());
         if end_point.multipart().is_some() {
             request_builder = request_builder.multipart(end_point.multipart().unwrap());
+        } else {
+            request_builder =
+                request_builder.header(header::CONTENT_TYPE, end_point.content_type().as_ref());
         }
         if end_point.body().is_some() {
             request_builder = request_builder.body(end_point.body().unwrap());
         }
-
-        let body = request_builder.send().await?.json::<T>().await?;
+        info!("builder: {:?}", request_builder);
+        let response = request_builder.send().await?;
+        info!("response: {:?}", response);
+        let body = response.json::<T>().await?;
         Ok(body)
     }
 
