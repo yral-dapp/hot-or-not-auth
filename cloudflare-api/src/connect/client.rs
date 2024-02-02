@@ -45,7 +45,10 @@ impl HttpApiClient {
             request_builder = request_builder.body(end_point.body().unwrap());
         }
         let response = request_builder.send().await?;
-        let body = response.json::<T>().await?;
+        let txt = response.text().await?;
+        info!("Sneak: {}", txt);
+        let body: T = serde_json::from_str(&txt).unwrap();
+        // let body = response.json::<T>().await?;
         Ok(body)
     }
 
