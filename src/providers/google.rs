@@ -51,8 +51,8 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     let pkce_verifier = pkce_verifier.secret();
     let csrf_token = csrf_token.secret();
 
-    info!("b4 pkce sec: {}", pkce_verifier);
-    info!("b4 csrf sec: {}", csrf_token);
+    info!("b4 pkce sec: {}", pkce_verifier.len());
+    info!("b4 csrf sec: {}", csrf_token.len());
 
     let mut pkce_verifier = Cookie::new("pkce_verifier", pkce_verifier.to_owned());
     pkce_verifier.set_domain(app_state.auth_cookie_domain.clone());
@@ -71,7 +71,6 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
 
     let response = expect_context::<ResponseOptions>();
     for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
-        info!("Adding cookie: {:?}", header_value);
         response.append_header(header::SET_COOKIE, header_value.clone());
     }
 
@@ -114,7 +113,7 @@ async fn google_verify_response(
         return Err(ServerFnError::new("Invalid CSRF token!"));
     }
     jar = jar.remove(Cookie::from("csrf_token"));
-    info!("aftr csrf sec: {}", csrf_token);
+    info!("aftr csrf sec: {}", csrf_token.len());
     let pkce_verifier = jar
         .get("pkce_verifier")
         .map(|cookie| cookie.value().to_owned())
@@ -126,7 +125,7 @@ async fn google_verify_response(
     for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
         response.append_header(header::SET_COOKIE, header_value.clone());
     }
-    info!("aftr pkce sec: {}", pkce_verifier);
+    info!("aftr pkce sec: {}", pkce_verifier.len());
 
     let pkce_verifier = PkceCodeVerifier::new(pkce_verifier);
     let token_result = client
@@ -165,7 +164,7 @@ async fn google_verify_response(
     };
 
     let access_token = token_result.access_token().secret();
-    info!("aftr access_token: {:?}", access_token);
+    info!("aftr access_token: {:?}", access_token.len());
     // TODO: add to user map for reference
     let session_response = generate_session().await?;
 
