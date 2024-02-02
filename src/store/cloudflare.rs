@@ -58,7 +58,7 @@ pub async fn write_kv(
         account_identifier: &cloudflare_config.account_identifier,
         namespace_identifier: &cloudflare_config.namespace_identifier,
         key_name,
-        value,
+        value: &format!(r#""{}""#, value),
         metadata,
     };
     let result = cloudflare_config.cloudflare_client.send(end_point).await;

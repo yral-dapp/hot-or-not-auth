@@ -1,7 +1,6 @@
 use crate::{connect::EndPoint, endpoints::CloudflareResponse};
 use reqwest::multipart::Form;
 use std::{borrow::Cow, collections::HashMap};
-use tracing::log::info;
 
 // https://developers.cloudflare.com/api/operations/workers-kv-namespace-write-key-value-pair-with-metadata
 #[derive(Debug)]

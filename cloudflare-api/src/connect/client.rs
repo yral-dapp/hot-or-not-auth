@@ -2,7 +2,7 @@ use super::EndPoint;
 use crate::connect::Credentials;
 use reqwest::{header, Client, Error, Method, RequestBuilder};
 use serde::Deserialize;
-use tracing::{instrument::WithSubscriber, log::info};
+use tracing::log::info;
 
 #[derive(Debug, Clone)]
 pub struct HttpApiClient {
@@ -44,9 +44,7 @@ impl HttpApiClient {
         if end_point.body().is_some() {
             request_builder = request_builder.body(end_point.body().unwrap());
         }
-        info!("builder: {:?}", request_builder);
         let response = request_builder.send().await?;
-        info!("response: {:?}", response);
         let body = response.json::<T>().await?;
         Ok(body)
     }

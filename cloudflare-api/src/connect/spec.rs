@@ -1,6 +1,5 @@
 use reqwest::multipart::Form;
 use std::{borrow::Cow, collections::HashMap};
-use tracing::log::info;
 use url::Url;
 
 pub trait EndPoint<T> {
