@@ -12,7 +12,7 @@ use leptos::*;
 use leptos_axum::ResponseOptions;
 use leptos_router::RouteListing;
 use std::collections::HashMap;
-use tracing::log::info;
+use tracing::log::{error, info, warn};
 
 #[server(endpoint = "generate_session")]
 pub async fn generate_session() -> Result<agent_js::SessionResponse, ServerFnError> {
@@ -25,28 +25,43 @@ pub async fn generate_session() -> Result<agent_js::SessionResponse, ServerFnErr
         None => None,
     };
 
-    info!("User check: {:?}", user_identity);
     // client identity
-    let user_key_pair: Option<generate::KeyPair> = if user_identity.is_none() {
-        None
-    } else {
-        let public_key = user_identity.unwrap();
-        let private_key = read_kv(&public_key, &app_state.cloudflare_config)
-            .await
-            .unwrap();
-        let private_key = general_purpose::STANDARD_NO_PAD
-            .decode(private_key)
-            .unwrap();
-        let metadata: HashMap<String, String> =
-            read_metadata(&public_key, &app_state.cloudflare_config)
-                .await
-                .unwrap();
-        let private_pem = metadata.get("private_pem").unwrap();
-        Some(generate::KeyPair {
-            public_key,
-            private_key,
-            private_pem: private_pem.to_owned(),
-        })
+    let user_key_pair: Option<generate::KeyPair> = match user_identity {
+        None => {
+            info!("User check: None");
+            None
+        }
+        Some(public_key) => {
+            info!("User check: {}", public_key.len());
+            match read_kv(&public_key, &app_state.cloudflare_config).await {
+                Some(private_key) => {
+                    let private_key = match general_purpose::STANDARD_NO_PAD.decode(private_key) {
+                        Ok(pk) => Some(pk),
+                        Err(error) => {
+                            error!("Could not decode pk: {}", error);
+                            None
+                        }
+                    };
+                    let metadata: Option<HashMap<String, String>> =
+                        read_metadata(&public_key, &app_state.cloudflare_config).await;
+                    if private_key.is_none() || metadata.is_none() {
+                        None
+                    } else {
+                        let metadata = metadata.unwrap();
+                        let private_pem = metadata.get("private_pem").unwrap();
+                        Some(generate::KeyPair {
+                            public_key,
+                            private_key: private_key.unwrap(),
+                            private_pem: private_pem.to_owned(),
+                        })
+                    }
+                }
+                None => {
+                    warn!("Found in cookie, not in KV");
+                    None
+                }
+            }
+        }
     };
     let user_key_pair = match user_key_pair {
         Some(kp) => kp,
@@ -137,7 +152,7 @@ pub async fn generate_session() -> Result<agent_js::SessionResponse, ServerFnErr
         delegation_identity: shareable_delegated_identity,
     };
 
-    info!("user_pubkey: {}", user_key_pair.public_key);
+    info!("user_pubkey: {}", user_key_pair.public_key.len());
 
     let mut user_cookie = Cookie::new("user_identity", user_key_pair.public_key.to_owned());
     user_cookie.set_domain(app_state.auth_cookie_domain.to_owned());
