@@ -113,7 +113,7 @@ async fn google_verify_response(
         return Err(ServerFnError::new("Invalid CSRF token!"));
     }
     jar = jar.remove(Cookie::from("csrf_token"));
-    info!("aftr csrf sec: {}", csrf_token.len());
+    info!("aftr csrf: {}", csrf_token.len());
     let pkce_verifier = jar
         .get("pkce_verifier")
         .map(|cookie| cookie.value().to_owned())
@@ -125,7 +125,7 @@ async fn google_verify_response(
     for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
         response.append_header(header::SET_COOKIE, header_value.clone());
     }
-    info!("aftr pkce sec: {}", pkce_verifier.len());
+    info!("aftr pkce: {}", pkce_verifier.len());
 
     let pkce_verifier = PkceCodeVerifier::new(pkce_verifier);
     let token_result = client

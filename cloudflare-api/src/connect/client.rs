@@ -44,11 +44,12 @@ impl HttpApiClient {
         if end_point.body().is_some() {
             request_builder = request_builder.body(end_point.body().unwrap());
         }
+        info!("RequestBuilder: {:?}", request_builder);
         let response = request_builder.send().await?;
-        let txt = response.text().await?;
-        info!("Sneak: {}", txt);
-        let body: T = serde_json::from_str(&txt).unwrap();
-        // let body = response.json::<T>().await?;
+        // let txt = response.text().await?;
+        // info!("KV Response: {}", txt);
+        // let body: T = serde_json::from_str(&txt).unwrap();
+        let body = response.json::<T>().await?;
         Ok(body)
     }
 

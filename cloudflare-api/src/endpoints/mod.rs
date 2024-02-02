@@ -5,7 +5,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 pub struct CloudflareResponse<T> {
     pub errors: Vec<Info>,
-    pub messages: Vec<Info>,
+    pub messages: Option<Vec<Info>>,
     pub result: Option<T>,
     pub result_info: Option<String>,
     pub success: bool,

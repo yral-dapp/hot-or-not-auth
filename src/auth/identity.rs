@@ -63,8 +63,7 @@ pub async fn generate_session() -> Result<agent_js::SessionResponse, ServerFnErr
                     metadata,
                     app_state.cloudflare_config,
                 )
-                .await
-                .unwrap();
+                .await;
             }
             new_key_pair
         }
@@ -88,14 +87,14 @@ pub async fn generate_session() -> Result<agent_js::SessionResponse, ServerFnErr
     };
 
     let signature = client_identity.sign_delegation(&delegation).unwrap();
-    info!("signature: {:?}", signature);
+    // info!("signature: {:?}", signature);
     info!("expiration: {}", delegation.expiration);
 
     let signed_delegation = SignedDelegation {
         delegation,
         signature: signature.signature.unwrap(),
     };
-    info!("signed_delegation: {:?}", signed_delegation);
+    // info!("signed_delegation: {:?}", signed_delegation);
 
     let signature_pubkey = signature.public_key.unwrap();
     let delegated_identity = DelegatedIdentity::new(

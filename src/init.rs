@@ -26,6 +26,7 @@ pub fn configure() -> AuthConfig {
         .merge(Env::raw())
         .extract()
         .unwrap();
+    tracing::log::info!("kv token: {}", config.cloudflare_api_token.len());
     config
 }
 
