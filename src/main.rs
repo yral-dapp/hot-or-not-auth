@@ -61,7 +61,6 @@ async fn main() {
     use leptos::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use tower::ServiceBuilder;
-    use tower_http::cors::CorsLayer;
 
     init::logging();
     let auth_config = init::configure();
@@ -84,7 +83,8 @@ async fn main() {
         cloudflare_config,
     };
     let app_state: identity::AppState = app_state;
-    let service = ServiceBuilder::new().layer(CorsLayer::permissive());
+
+    let service = ServiceBuilder::new().layer(init::cors_layer());
 
     let app = Router::new()
         .route(

@@ -8,6 +8,8 @@ use figment::{
     providers::{Env, Format, Toml},
     Figment,
 };
+use http::{header, Method};
+use tower_http::cors::CorsLayer;
 }}
 
 #[cfg(feature = "ssr")]
@@ -58,6 +60,27 @@ pub fn oauth2_client_init(auth_config: &AuthConfig) -> oauth2::basic::BasicClien
     .set_redirect_uri(
         oauth2::RedirectUrl::new(auth_config.google_auth_landing_url.to_owned()).unwrap(),
     )
+}
+
+#[cfg(feature = "ssr")]
+pub fn cors_layer() -> CorsLayer {
+    let origins = [
+        "localhost".parse().unwrap(),
+        "127.0.0.1".parse().unwrap(),
+        "0.0.0.0".parse().unwrap(),
+        "hot-or-not-auth.fly.dev".parse().unwrap(),
+        "hot-or-not-web-leptos-ssr.fly.dev".parse().unwrap(),
+    ];
+    let cors_layer = CorsLayer::new()
+        .allow_origin(origins)
+        .allow_methods([Method::GET, Method::POST])
+        .allow_headers([
+            header::ACCEPT,
+            header::ACCEPT_LANGUAGE,
+            header::CONTENT_LANGUAGE,
+            header::CONTENT_TYPE,
+        ]);
+    cors_layer
 }
 
 #[derive(Deserialize, Clone)]
