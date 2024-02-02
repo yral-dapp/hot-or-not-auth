@@ -3,7 +3,7 @@ use cloudflare_api::{
     endpoints::storage_kv::{DeleteKV, ReadKV, ReadMetadata, WriteKVWithMetadata},
 };
 use std::collections::HashMap;
-use tracing::log::{error, info};
+use tracing::log::{error, info, warn};
 
 pub async fn read_kv(key_name: &str, cloudflare_config: &ApiClientConfig) -> Option<String> {
     let end_point = ReadKV {
@@ -14,7 +14,7 @@ pub async fn read_kv(key_name: &str, cloudflare_config: &ApiClientConfig) -> Opt
     match cloudflare_config.cloudflare_client.send(end_point).await {
         Ok(response) => Some(response),
         Err(error) => {
-            info!("Error read_kv: {}", error);
+            warn!("Error read_kv: {}", error);
             None
         }
     }
@@ -30,19 +30,18 @@ pub async fn read_metadata(
         key_name,
     };
     match cloudflare_config.cloudflare_client.send(end_point).await {
-        Ok(response) => {
-            if response.success == true {
-                Some(response.result.unwrap())
-            } else {
-                info!("Error read_metadata: ");
+        Ok(response) => match response.success {
+            true => Some(response.result.unwrap()),
+            false => {
+                warn!("Error read_metadata: ");
                 for error in response.errors {
-                    info!("code: {}, message: {}", error.code, error.message);
+                    warn!("code: {}, message: {}", error.code, error.message);
                 }
                 None
             }
-        }
+        },
         Err(error) => {
-            info!("Error read_metadata: {}", error);
+            error!("Error read_metadata: {}", error);
             None
         }
     }
@@ -63,10 +62,16 @@ pub async fn write_kv(
     };
     let result = cloudflare_config.cloudflare_client.send(end_point).await;
     match result {
-        Ok(result) => {
-            info!("write kv: {:?}", result);
-            Some(result.success.to_string())
-        }
+        Ok(result) => match result.success {
+            true => {
+                warn!("write kv success");
+                Some(result.success.to_string())
+            }
+            false => {
+                warn!("write kv failed: {:?}", result.errors);
+                None
+            }
+        },
         Err(error) => {
             error!("write kv error: {}", error);
             None
