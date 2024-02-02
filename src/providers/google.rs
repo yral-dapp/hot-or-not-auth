@@ -8,7 +8,7 @@ use oauth2::TokenResponse;
 cfg_if! {
 if #[cfg(feature="ssr")] {
 use axum::{http::header, response::IntoResponse};
-use axum_extra::extract::cookie::{Cookie, Key, PrivateCookieJar, SignedCookieJar};
+use axum_extra::extract::cookie::{SameSite, Cookie, Key, PrivateCookieJar, SignedCookieJar};
 use crate::auth::{identity::{AppState, generate_session}};
 use leptos_axum::ResponseOptions;
 use oauth2::{reqwest::{async_http_client}, AuthorizationCode, CsrfToken, PkceCodeVerifier, PkceCodeChallenge, Scope};
@@ -56,11 +56,13 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
 
     let mut pkce_verifier = Cookie::new("pkce_verifier", pkce_verifier.to_owned());
     pkce_verifier.set_domain(app_state.auth_cookie_domain.clone());
+    pkce_verifier.set_same_site(SameSite::Strict);
     pkce_verifier.set_http_only(true);
     jar = jar.remove(Cookie::from("pkce_verifier"));
     jar = jar.add(pkce_verifier.clone());
     let mut csrf_token = Cookie::new("csrf_token", csrf_token.to_owned());
     csrf_token.set_domain(app_state.auth_cookie_domain);
+    csrf_token.set_same_site(SameSite::Strict);
     csrf_token.set_http_only(true);
     jar = jar.remove(Cookie::from("csrf_token"));
     jar = jar.add(csrf_token.clone());
@@ -100,7 +102,7 @@ async fn google_verify_response(
 ) -> Result<SessionResponse, ServerFnError> {
     let app_state =
         use_context::<AppState>().ok_or_else(|| ServerFnError::new("Context not found!"))?;
-    let jar: PrivateCookieJar =
+    let mut jar: PrivateCookieJar =
         leptos_axum::extract_with_state::<PrivateCookieJar<Key>, AppState>(&app_state).await?;
 
     let client = app_state.oauth2_client;
@@ -111,13 +113,20 @@ async fn google_verify_response(
     if !csrf_token.eq(&provided_csrf) {
         return Err(ServerFnError::new("Invalid CSRF token!"));
     }
+    jar = jar.remove(Cookie::from("csrf_token"));
+    info!("aftr csrf sec: {}", csrf_token);
     let pkce_verifier = jar
         .get("pkce_verifier")
         .map(|cookie| cookie.value().to_owned())
         .ok_or_else(|| ServerFnError::new("No Verifier found!"))?;
+    jar = jar.remove(Cookie::from("pkce_verifier"));
+    let jar_into_response = jar.into_response();
 
+    let response = expect_context::<ResponseOptions>();
+    for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
+        response.append_header(header::SET_COOKIE, header_value.clone());
+    }
     info!("aftr pkce sec: {}", pkce_verifier);
-    info!("aftr csrf sec: {}", csrf_token);
 
     let pkce_verifier = PkceCodeVerifier::new(pkce_verifier);
     let token_result = client

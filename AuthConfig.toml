@@ -1,6 +1,6 @@
 auth_ic_url = "https://ic0.app"
 auth_sign_key = ""
-auth_cookie_domain = "hot-or-not-web-leptos-ssr.fly.dev"
+auth_cookie_domain = "hot-or-not-auth.fly.dev"
 
 # cloudflare_configs
 cloudflare_account_identifier = ""

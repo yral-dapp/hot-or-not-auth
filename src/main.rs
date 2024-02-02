@@ -60,8 +60,6 @@ async fn main() {
     use handlers::*;
     use leptos::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use std::{collections::HashMap, sync::Arc};
-    use tokio::sync::RwLock;
     use tower::ServiceBuilder;
     use tower_http::cors::CorsLayer;
 

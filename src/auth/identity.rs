@@ -1,7 +1,7 @@
 use super::{agent_js, generate};
 use crate::store::cloudflare::{read_kv, read_metadata, write_kv};
 use axum::{extract::FromRef, http::header, response::IntoResponse};
-use axum_extra::extract::cookie::{Cookie, Key, SignedCookieJar};
+use axum_extra::extract::cookie::{Cookie, Key, SameSite, SignedCookieJar};
 use base64::{engine::general_purpose, Engine as _};
 use chrono::{Duration, Utc};
 use ic_agent::{
@@ -141,13 +141,15 @@ pub async fn generate_session() -> Result<agent_js::SessionResponse, ServerFnErr
     info!("user_pubkey: {}", user_key_pair.public_key);
 
     let mut user_cookie = Cookie::new("user_identity", user_key_pair.public_key.to_owned());
-    user_cookie.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
+    user_cookie.set_domain(app_state.auth_cookie_domain.to_owned());
+    user_cookie.set_same_site(SameSite::None);
     // user_cookie.set_expires(expiration);
     user_cookie.set_http_only(true);
     jar = jar.add(user_cookie);
 
     let mut exp_cookie = Cookie::new("expiration", expiration.to_string());
-    exp_cookie.set_domain("hot-or-not-web-leptos-ssr.fly.dev");
+    exp_cookie.set_domain(app_state.auth_cookie_domain);
+    exp_cookie.set_same_site(SameSite::None);
     // exp_cookie.set_expires(expiration);
     exp_cookie.set_http_only(true);
     jar = jar.add(exp_cookie);
@@ -176,6 +178,7 @@ pub struct AppState {
     pub key: Key,
     pub oauth2_client: oauth2::basic::BasicClient,
     pub reqwest_client: reqwest::Client,
+    pub auth_cookie_domain: String,
     pub auth_cookie_domain: String,
     pub cloudflare_config: cloudflare_api::connect::ApiClientConfig,
 }
