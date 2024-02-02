@@ -21,12 +21,15 @@ pub fn logging() {
 
 #[cfg(feature = "ssr")]
 pub fn configure() -> AuthConfig {
+    use tracing::log::info;
     let config: AuthConfig = Figment::new()
         .merge(Toml::file("AuthConfig.toml"))
         .merge(Env::raw())
         .extract()
         .unwrap();
-    tracing::log::info!("kv token: {}", config.cloudflare_api_token.len());
+    info!("sign: {}", config.auth_sign_key.len());
+    info!("ctoken: {}", config.cloudflare_api_token.len());
+    info!("gtoken: {}", config.google_client_secret.len());
     config
 }
 
