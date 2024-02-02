@@ -62,14 +62,13 @@ pub async fn write_kv(
         metadata,
     };
     let result = cloudflare_config.cloudflare_client.send(end_point).await;
-    info!("result: {:?}", result);
     match result {
         Ok(result) => {
-            info!("write: {:?}", result);
+            info!("write kv: {:?}", result);
             Some(result.success.to_string())
         }
         Err(error) => {
-            error!("write error: {}", error);
+            error!("write kv error: {}", error);
             None
         }
     }
