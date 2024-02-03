@@ -1,8 +1,7 @@
 use super::EndPoint;
 use crate::{connect::Credentials, endpoints::CloudflareResponse, errors::CloudflareError};
-use reqwest::{header, Client, Error, Method, RequestBuilder, StatusCode};
+use reqwest::{header, Client, Method, RequestBuilder, StatusCode};
 use serde::Deserialize;
-use tracing::log::{error, info};
 
 #[derive(Debug, Clone)]
 pub struct HttpApiClient {

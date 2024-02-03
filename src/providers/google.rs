@@ -178,11 +178,8 @@ pub fn OAuth2Response() -> impl IntoView {
     use web_sys::{window, Window};
 
     let handle_oauth2_redirect = Action::<GoogleVerifyResponse, _>::server();
-
-    let query = use_query::<OAuthParams>();
     create_effect(move |_| {
         if let Some(Ok(session_response)) = handle_oauth2_redirect.value().get() {
-            log!("session response: {:?}", session_response);
             let message = match serde_json::to_string(&session_response) {
                 Ok(session) => session,
                 Err(error) => error.to_string(),
@@ -199,6 +196,7 @@ pub fn OAuth2Response() -> impl IntoView {
         }
     });
 
+    let query = use_query::<OAuthParams>();
     create_effect(move |_| {
         if let Ok(OAuthParams { code, state }) = query.get_untracked() {
             handle_oauth2_redirect.dispatch(GoogleVerifyResponse {
