@@ -58,12 +58,14 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     pkce_verifier.set_domain(app_state.auth_cookie_domain.clone());
     pkce_verifier.set_same_site(SameSite::Strict);
     pkce_verifier.set_http_only(true);
+    pkce_verifier.set_secure(true);
     jar = jar.remove(Cookie::from("pkce_verifier"));
     jar = jar.add(pkce_verifier.clone());
     let mut csrf_token = Cookie::new("csrf_token", csrf_token.to_owned());
     csrf_token.set_domain(app_state.auth_cookie_domain);
     csrf_token.set_same_site(SameSite::Strict);
     csrf_token.set_http_only(true);
+    csrf_token.set_secure(true);
     jar = jar.remove(Cookie::from("csrf_token"));
     jar = jar.add(csrf_token.clone());
 
@@ -181,7 +183,10 @@ pub fn OAuth2Response() -> impl IntoView {
     create_effect(move |_| {
         if let Some(Ok(session_response)) = handle_oauth2_redirect.value().get() {
             let message = match serde_json::to_string(&session_response) {
-                Ok(session) => session,
+                Ok(session) => {
+                    leptos::logging::log!("Session: {}", session);
+                    session
+                }
                 Err(error) => error.to_string(),
             };
             let opener = window().unwrap().opener().unwrap();

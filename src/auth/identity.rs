@@ -163,6 +163,7 @@ pub async fn generate_session() -> Result<crate::auth::agent_js::SessionResponse
     user_cookie.set_same_site(SameSite::None);
     set_cookie_expiry(&mut user_cookie);
     user_cookie.set_http_only(true);
+    user_cookie.set_secure(true);
     jar = jar.add(user_cookie);
 
     let mut exp_cookie = Cookie::new("expiration", expiration.to_string());
@@ -170,6 +171,7 @@ pub async fn generate_session() -> Result<crate::auth::agent_js::SessionResponse
     exp_cookie.set_same_site(SameSite::None);
     set_cookie_expiry(&mut exp_cookie);
     exp_cookie.set_http_only(true);
+    exp_cookie.set_secure(true);
     jar = jar.add(exp_cookie);
 
     let jar_into_response = jar.into_response();
