@@ -2,7 +2,7 @@ use crate::auth::agent_js::SessionResponse;
 use cfg_if::cfg_if;
 use leptos::SignalGet;
 use leptos::*;
-use leptos_router::{use_query, NavigateOptions, Params};
+use leptos_router::{use_query, Params};
 use oauth2::TokenResponse;
 
 cfg_if! {
@@ -171,32 +171,32 @@ async fn google_verify_response(
     Ok(session_response)
 }
 
-#[wasm_bindgen::prelude::wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen::prelude::wasm_bindgen(js_namespace = ["window", "top"], js_name = "postMessage")]
-    pub fn post_message(message: &str, target_origin: &str);
-}
-
 #[component]
 pub fn OAuth2Response() -> impl IntoView {
-    let handle_oauth2_redirect = Action::<GoogleVerifyResponse, _>::server();
+    use leptos::logging::log;
+    use wasm_bindgen::JsValue;
+    use web_sys::{window, Window};
 
-    let query = use_query::<OAuthParams>();
-    // let navigate = leptos_router::use_navigate();
+    let handle_oauth2_redirect = Action::<GoogleVerifyResponse, _>::server();
     create_effect(move |_| {
         if let Some(Ok(session_response)) = handle_oauth2_redirect.value().get() {
-            leptos::logging::log!("session response: {:?}", session_response);
-            // TODO: targetOrigin to be updated from config
-            match serde_json::to_string(&session_response) {
-                Ok(session) => post_message(session.as_str(), "*"),
-                Err(error) => {
-                    post_message(error.to_string().as_str(), "*");
-                }
+            let message = match serde_json::to_string(&session_response) {
+                Ok(session) => session,
+                Err(error) => error.to_string(),
+            };
+            let opener = window().unwrap().opener().unwrap();
+            let opener = Window::from(opener);
+            match opener.post_message(&JsValue::from_str(&message), "*") {
+                Err(error) => log!(
+                    "post result: {}",
+                    error.as_string().unwrap_or("".to_owned())
+                ),
+                Ok(_) => {}
             }
-            // navigate("/", NavigateOptions::default());
         }
     });
 
+    let query = use_query::<OAuthParams>();
     create_effect(move |_| {
         if let Ok(OAuthParams { code, state }) = query.get_untracked() {
             handle_oauth2_redirect.dispatch(GoogleVerifyResponse {

@@ -64,7 +64,7 @@ pub async fn write_kv(
     match result {
         Ok(result) => match result.success {
             true => {
-                warn!("write kv success");
+                info!("write kv success");
                 Some(result.success.to_string())
             }
             false => {
