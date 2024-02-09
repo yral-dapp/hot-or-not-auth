@@ -51,7 +51,7 @@ pub async fn write_kv(
     key_name: &str,
     value: &str,
     metadata: HashMap<&str, &str>,
-    cloudflare_config: ApiClientConfig,
+    cloudflare_config: &ApiClientConfig,
 ) -> Option<String> {
     let end_point = WriteKVWithMetadata {
         account_identifier: &cloudflare_config.account_identifier,
@@ -79,7 +79,7 @@ pub async fn write_kv(
     }
 }
 
-pub async fn delete_kv(key_name: &str, cloudflare_config: ApiClientConfig) -> Option<String> {
+pub async fn delete_kv(key_name: &str, cloudflare_config: &ApiClientConfig) -> Option<String> {
     let end_point = DeleteKV {
         account_identifier: &cloudflare_config.account_identifier,
         namespace_identifier: &cloudflare_config.namespace_identifier,

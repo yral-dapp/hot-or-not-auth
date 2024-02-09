@@ -32,7 +32,7 @@ pub fn LandingPage() -> impl IntoView {
                 </A>
                 <A class="flex items-center duration-200 transition-all rounded-full !select-none justify-center
         focus:outline-none px-4 py-3 font-semibold text-white border-white/40 focus:bg-white/20 border-2 bg-transparent
-        h-12 w-full space-x-2 py-3" href="/internetcomputer">
+        h-12 w-full space-x-2 py-3" href="#">
                     <svg class="w-8" id="dfinity-logo" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 197 97">
                         <path fill="#F15A24" d="M148.7.4c-10.9 0-22.8 5.8-35.4 17.3-6 5.4-11.2 11.2-15 15.9l12.8 14.3c3.6-4.5 8.9-10.6 14.9-16.1 11.2-10.2 18.5-12.3 22.7-12.3a28.9 28.9 0 1 1 0 57.8L146 77a35 35 0 0 0 14.2 3.6c28.8 0 34.4-19.5 34.8-20.9A48 48 0 0 0 148.7.4Z"/>
                         <path fill="#ED1E79" d="M48.1 96.3c10.9 0 22.8-5.8 35.4-17.3 6-5.4 11.2-11.2 15-15.9L85.7 48.8c-3.6 4.5-8.9 10.6-14.9 16.1-11.2 10.2-18.5 12.3-22.7 12.3a28.9 28.9 0 1 1 0-57.8l2.7.3a35 35 0 0 0-14.2-3.6C7.8 16.1 2.2 35.6 1.8 37a48 48 0 0 0 46.3 59.3Z"/>
