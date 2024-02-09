@@ -74,7 +74,6 @@ async fn main() {
 
     let app_state = identity::AppState {
         leptos_options,
-        // oauth_map: Arc::new(RwLock::new(HashMap::new())),
         key: Key::from(auth_config.auth_sign_key.as_bytes()),
         routes: routes.clone(),
         oauth2_client,

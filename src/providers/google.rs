@@ -3,16 +3,27 @@ use cfg_if::cfg_if;
 use leptos::SignalGet;
 use leptos::*;
 use leptos_router::{use_query, Params};
-use oauth2::TokenResponse;
 
 cfg_if! {
 if #[cfg(feature="ssr")] {
-use axum::{http::header, response::IntoResponse};
-use axum_extra::extract::cookie::{SameSite, Cookie, Key, PrivateCookieJar, SignedCookieJar};
-use crate::auth::{identity::{AppState, generate_session}};
-use leptos_axum::ResponseOptions;
-use oauth2::{reqwest::{async_http_client}, AuthorizationCode, CsrfToken, PkceCodeVerifier, PkceCodeChallenge, Scope};
-use tracing::log::{info, error};
+    use crate::{
+        auth::{
+            cookie,
+            identity::{get_session_response, AppState},
+        },
+        store::cloudflare::{delete_kv, read_kv, write_kv},
+    };
+    use axum::{http::header, response::IntoResponse};
+    use axum_extra::extract::cookie::{Cookie, Key, PrivateCookieJar, SameSite, SignedCookieJar};
+    use chrono::{Duration, Utc};
+    use leptos_axum::ResponseOptions;
+    use oauth2::TokenResponse;
+    use oauth2::{
+        reqwest::async_http_client, AuthorizationCode, CsrfToken, PkceCodeChallenge,
+        PkceCodeVerifier, Scope,
+    };
+    use std::collections::HashMap;
+    use tracing::log::{error, info};
 }
 }
 
@@ -24,13 +35,11 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     // enable after integration
     let signed_jar: SignedCookieJar =
         leptos_axum::extract_with_state::<SignedCookieJar<Key>, AppState>(&app_state).await?;
-    /*
     let _user_identity = match signed_jar.get("user_identity") {
         Some(val) => Some(val.value().to_owned()),
         None => None,
     }
     .ok_or_else(|| ServerFnError::new("User Session not found."))?;
-    */
 
     let mut jar: PrivateCookieJar =
         leptos_axum::extract_with_state::<PrivateCookieJar<Key>, AppState>(&app_state).await?;
@@ -54,20 +63,24 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     info!("b4 pkce sec: {}", pkce_verifier.len());
     info!("b4 csrf sec: {}", csrf_token.len());
 
-    let mut pkce_verifier = Cookie::new("pkce_verifier", pkce_verifier.to_owned());
-    pkce_verifier.set_domain(app_state.auth_cookie_domain.clone());
-    pkce_verifier.set_same_site(SameSite::Strict);
-    pkce_verifier.set_http_only(true);
-    pkce_verifier.set_secure(true);
-    jar = jar.remove(Cookie::from("pkce_verifier"));
-    jar = jar.add(pkce_verifier.clone());
-    let mut csrf_token = Cookie::new("csrf_token", csrf_token.to_owned());
-    csrf_token.set_domain(app_state.auth_cookie_domain);
-    csrf_token.set_same_site(SameSite::Strict);
-    csrf_token.set_http_only(true);
-    csrf_token.set_secure(true);
-    jar = jar.remove(Cookie::from("csrf_token"));
-    jar = jar.add(csrf_token.clone());
+    let pkce_verifier = cookie::create_cookie(
+        "pkce_verifier",
+        pkce_verifier.to_owned(),
+        app_state.auth_cookie_domain.to_owned(),
+        SameSite::Strict,
+    )
+    .await;
+    // jar = jar.remove(Cookie::from("pkce_verifier"));
+    jar = jar.add(pkce_verifier);
+    let csrf_token = cookie::create_cookie(
+        "csrf_token",
+        csrf_token.to_owned(),
+        app_state.auth_cookie_domain.to_owned(),
+        SameSite::Strict,
+    )
+    .await;
+    // jar = jar.remove(Cookie::from("csrf_token"));
+    jar = jar.add(csrf_token);
 
     let jar_into_response = jar.into_response();
 
@@ -105,6 +118,14 @@ async fn google_verify_response(
         use_context::<AppState>().ok_or_else(|| ServerFnError::new("Context not found!"))?;
     let mut jar: PrivateCookieJar =
         leptos_axum::extract_with_state::<PrivateCookieJar<Key>, AppState>(&app_state).await?;
+    let mut signed_jar: SignedCookieJar =
+        leptos_axum::extract_with_state::<SignedCookieJar<Key>, AppState>(&app_state).await?;
+
+    let user_identity = match signed_jar.get("user_identity") {
+        Some(val) => Some(val.value().to_owned()),
+        None => None,
+    }
+    .ok_or_else(|| ServerFnError::new("User Session not found."))?;
 
     let client = app_state.oauth2_client;
     let csrf_token = jar
@@ -123,9 +144,9 @@ async fn google_verify_response(
     jar = jar.remove(Cookie::from("pkce_verifier"));
     let jar_into_response = jar.into_response();
 
-    let response = expect_context::<ResponseOptions>();
+    let response_options = expect_context::<ResponseOptions>();
     for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
-        response.append_header(header::SET_COOKIE, header_value.clone());
+        response_options.append_header(header::SET_COOKIE, header_value.clone());
     }
     info!("aftr pkce: {}", pkce_verifier.len());
 
@@ -136,39 +157,93 @@ async fn google_verify_response(
         .request_async(async_http_client)
         .await?;
 
-    info!("token_result: {:?}", &token_result);
+    info!(
+        "token_result: f you need any inputs from my side.{:?}",
+        &token_result
+    );
     let access_token = token_result.access_token().secret();
+    // TODO: check against delegate session. set whichever is lower
     let expires_in = token_result.expires_in().unwrap().as_secs();
     match token_result.refresh_token() {
         Some(secret) => info!("secret: {:?}", secret),
         None => {}
     }
     let user_info_url = "https://www.googleapis.com/oauth2/v3/userinfo";
-    let response = app_state
+    let reqwest_response = app_state
         .reqwest_client
         .get(user_info_url)
         .bearer_auth(access_token)
         .send()
         .await?;
-    let sub_openid = if response.status().is_success() {
-        let response_json: serde_json::Value = response.json().await?;
+    let access_token = token_result.access_token().secret();
+    info!("aftr access_token: {:?}", access_token.len());
+
+    let sub_openid = if reqwest_response.status().is_success() {
+        let response_json: serde_json::Value = reqwest_response.json().await?;
         info!("response_json: {response_json:?}");
         response_json["sub"]
             .as_str()
             .expect("openid sub to parse to string")
             .to_string()
     } else {
-        error!("Response status failed: {:?}", response);
+        error!("Response status failed: {:?}", reqwest_response);
         return Err(ServerFnError::ServerError(format!(
             "Response from google has status of {}",
-            response.status()
+            reqwest_response.status()
         )));
     };
 
-    let access_token = token_result.access_token().secret();
-    info!("aftr access_token: {:?}", access_token.len());
-    // TODO: add to user map for reference
-    let session_response = generate_session().await?;
+    let oauth2_kv_key = format!("google_sub_id_{}", sub_openid);
+    let user_identity = match read_kv(&oauth2_kv_key, &app_state.cloudflare_config).await {
+        Some(user_public_key) => {
+            if !user_identity.eq(&user_public_key) {
+                // returning user with different temporary session
+                // delete current temp session
+                let _ignore = delete_kv(&user_identity, &app_state.cloudflare_config).await;
+                Some(user_public_key)
+            } else {
+                Some(user_identity)
+            }
+        }
+        None => {
+            let _ignore = write_kv(
+                &oauth2_kv_key,
+                &user_identity,
+                HashMap::with_capacity(0),
+                &app_state.cloudflare_config,
+            )
+            .await;
+            Some(user_identity)
+        }
+    };
+    let session_response = get_session_response(user_identity, &app_state.cloudflare_config).await;
+
+    let user_cookie = cookie::create_cookie(
+        "user_identity",
+        session_response.user_identity.to_owned(),
+        app_state.auth_cookie_domain.to_owned(),
+        SameSite::None,
+    )
+    .await;
+    signed_jar = signed_jar.add(user_cookie);
+
+    let expiration = Utc::now() + Duration::days(30);
+    let exp_cookie = cookie::create_cookie(
+        "expiration",
+        expiration.to_string(),
+        app_state.auth_cookie_domain.to_owned(),
+        SameSite::None,
+    )
+    .await;
+    signed_jar = signed_jar.add(exp_cookie);
+
+    let signed_jar_into_response = signed_jar.into_response();
+    for header_value in signed_jar_into_response
+        .headers()
+        .get_all(header::SET_COOKIE)
+    {
+        response_options.append_header(header::SET_COOKIE, header_value.clone());
+    }
 
     Ok(session_response)
 }
