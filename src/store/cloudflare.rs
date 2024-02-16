@@ -41,7 +41,7 @@ pub async fn read_metadata(
             }
         },
         Err(error) => {
-            error!("Error read_metadata: {}", error);
+            warn!("Error read_metadata: {}", error);
             None
         }
     }

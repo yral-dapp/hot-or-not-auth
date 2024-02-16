@@ -3,6 +3,7 @@ mod auth;
 mod error_template;
 mod fileserve;
 mod init;
+mod metadata;
 mod page;
 mod providers;
 mod store;
@@ -54,8 +55,17 @@ mod handlers {
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use crate::{app::App, auth::identity, fileserve::file_and_error_handler, init};
-    use axum::{routing::get, Router};
+    use crate::{
+        app::App,
+        auth::identity,
+        fileserve::file_and_error_handler,
+        init,
+        metadata::user::{get_user_canister, update_user_metadata},
+    };
+    use axum::{
+        routing::{get, post},
+        Router,
+    };
     use axum_extra::extract::cookie::Key;
     use handlers::*;
     use leptos::*;
@@ -90,6 +100,8 @@ async fn main() {
             "/api/*fn_name",
             get(server_fn_handler).post(server_fn_handler),
         )
+        .route("/rest_api/update_user_metadata", post(update_user_metadata))
+        .route("/rest_api/get_user_canister", post(get_user_canister))
         .leptos_routes_with_handler(routes, get(leptos_routes_handler))
         .fallback(file_and_error_handler)
         .layer(service)
