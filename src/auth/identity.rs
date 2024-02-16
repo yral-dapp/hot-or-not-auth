@@ -87,7 +87,6 @@ pub async fn get_session_response(
     let expiration = Utc::now() + Duration::days(30);
     let expiration = expiration.timestamp_nanos_opt().unwrap().unsigned_abs();
 
-    // delegation
     let delegation = Delegation {
         pubkey: client_temp_identity.public_key().unwrap(),
         expiration,
@@ -123,13 +122,7 @@ pub async fn get_session_response(
         _delegation: agent_js::DelegationChain {
             delegations: vec![agent_js::SignedDelegation {
                 delegation: agent_js::Delegation {
-                    expiration: generate::to_hex_string(
-                        signed_delegation
-                            .delegation
-                            .expiration
-                            .to_be_bytes()
-                            .to_vec(),
-                    ),
+                    expiration: generate::to_hex_string(signed_delegation.delegation.expiration),
                     pubkey: signed_delegation.delegation.pubkey,
                     targets: None,
                 },

@@ -4,6 +4,7 @@ use k256::SecretKey;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use sec1::LineEnding::CRLF;
+use tracing::log::warn;
 
 pub fn key_pair() -> Result<KeyPair, String> {
     let mnemonic = Mnemonic::new(MnemonicType::for_key_size(256).unwrap(), Language::English);
@@ -48,11 +49,34 @@ fn get_random_string() -> String {
         .collect()
 }
 
-pub fn to_hex_string(bytes: Vec<u8>) -> String {
-    bytes.iter().fold(String::new(), |mut acc, &byte| {
-        acc.push_str(&format!("{:02x}", byte));
-        acc
-    })
+pub fn to_hex_string(number: u64) -> String {
+    number
+        .to_be_bytes()
+        .iter()
+        .fold(String::new(), |mut acc, &byte| {
+            acc.push_str(&format!("{:02x}", byte));
+            acc
+        })
+}
+
+pub fn from_hex_string(hex_string: &str) -> Result<u64, String> {
+    let mut iter = hex_string.chars();
+    let mut byte_arr = Vec::with_capacity(hex_string.len());
+
+    while let Some(c1) = iter.next() {
+        let word8 = iter
+            .next()
+            .map(|c2| u8::from_str_radix(&format!("{}{}", c1, c2), 16).unwrap())
+            .unwrap();
+        byte_arr.push(word8);
+    }
+    match byte_arr.as_slice().try_into() {
+        Ok(b) => Ok(u64::from_be_bytes(b)),
+        Err(error) => {
+            warn!("{}", error);
+            Err("Could not convert to u64".to_owned())
+        }
+    }
 }
 
 #[derive(Default, Clone)]
