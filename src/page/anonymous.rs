@@ -3,6 +3,7 @@ use leptos::*;
 
 #[component]
 pub fn AnonymousIdentity() -> impl IntoView {
+    use crate::constants;
     use leptos::logging::{error, log};
     use leptos_use::use_window;
     use wasm_bindgen::JsValue;
@@ -20,7 +21,7 @@ pub fn AnonymousIdentity() -> impl IntoView {
             let window = use_window();
             let opener = window.as_ref().unwrap().parent().unwrap().unwrap();
             // TODO: skip for window.self
-            match opener.post_message(&JsValue::from_str(&message), "*") {
+            match opener.post_message(&JsValue::from_str(&message), constants::WEB_URL.as_str()) {
                 Err(error) => log!("post result: {:?}", error),
                 Ok(_) => {}
             }

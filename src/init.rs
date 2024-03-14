@@ -100,7 +100,8 @@ pub struct AuthConfig {
     pub cookie_domain: String,
     pub ic_url: String,
     pub sign_key: String,
-    pub app_url: String,
+    pub auth_domain: String,
+    pub app_domain: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

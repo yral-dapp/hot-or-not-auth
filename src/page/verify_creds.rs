@@ -49,13 +49,17 @@ pub fn verify_creds() -> impl IntoView {
 }
 
 fn handle_error(message: &str) {
+    use crate::constants;
     use leptos_use::use_window;
     use wasm_bindgen::JsValue;
 
     let window = use_window();
     let window = window.as_ref().unwrap();
     let opener = window.parent().unwrap().unwrap();
-    match opener.post_message(&JsValue::from_str(&message), "*") {
+    match opener.post_message(
+        &JsValue::from_str(&message),
+        &constants::AUTH_URL.host_str().unwrap(),
+    ) {
         Err(error) => error!("post result: {:?}", error),
         Ok(_) => {}
     }
@@ -86,23 +90,19 @@ pub async fn verify_payload(
         leptos_axum::extract_with_state::<SignedCookieJar<Key>, AppState>(&app_state).await?;
 
     // TODO: validate from KV
+    let auth_domain = app_state.auth_domain.host_str().unwrap().to_owned();
 
     let user_cookie = cookie::create_cookie(
         "user_identity",
         user_identity,
-        app_state.auth_cookie_domain.to_owned(),
+        auth_domain.to_owned(),
         SameSite::Strict,
     )
     .await;
     jar = jar.add(user_cookie);
 
-    let expiration = cookie::create_cookie(
-        "expiration",
-        expiration,
-        app_state.auth_cookie_domain.to_owned(),
-        SameSite::Strict,
-    )
-    .await;
+    let expiration =
+        cookie::create_cookie("expiration", expiration, auth_domain, SameSite::Strict).await;
     jar = jar.add(expiration);
 
     let jar_into_response = jar.into_response();
@@ -110,5 +110,5 @@ pub async fn verify_payload(
     for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
         response.append_header(header::SET_COOKIE, header_value.clone());
     }
-    Ok(format!("http://{}", app_state.auth_cookie_domain))
+    Ok(format!("{}", app_state.auth_domain.as_str()))
 }

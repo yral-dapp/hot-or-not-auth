@@ -68,8 +68,10 @@ pub async fn get_redirect_url() -> Result<String, ServerFnError> {
     let expiration = URL_SAFE.encode(expiration.value());
 
     let url = format!(
-        "http://{}/verify_creds?u={}&e={}",
-        app_state.auth_cookie_domain, user_identity, expiration
+        "{}/verify_creds?u={}&e={}",
+        app_state.auth_domain.as_str(),
+        user_identity,
+        expiration
     );
 
     Ok(url)

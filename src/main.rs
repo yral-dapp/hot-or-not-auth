@@ -92,8 +92,8 @@ async fn main() {
         routes: routes.clone(),
         oauth2_client,
         reqwest_client: reqwest::Client::new(),
-        auth_cookie_domain: app_config.auth.cookie_domain,
-        app_url: Url::parse(&app_config.auth.app_url).unwrap(),
+        auth_domain: Url::parse(&app_config.auth.auth_domain).unwrap(),
+        app_domain: Url::parse(&app_config.auth.app_domain).unwrap(),
         cloudflare_config,
     };
     let app_state: identity::AppState = app_state;

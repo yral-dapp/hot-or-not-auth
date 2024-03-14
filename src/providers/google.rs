@@ -63,10 +63,12 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     info!("b4 pkce sec: {}", pkce_verifier.len());
     info!("b4 csrf sec: {}", csrf_token.len());
 
+    let auth_domain = app_state.auth_domain.host_str().unwrap().to_owned();
+
     let pkce_verifier = cookie::create_cookie(
         "pkce_verifier",
         pkce_verifier.to_owned(),
-        app_state.auth_cookie_domain.to_owned(),
+        auth_domain.to_owned(),
         SameSite::Strict,
     )
     .await;
@@ -75,7 +77,7 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     let csrf_token = cookie::create_cookie(
         "csrf_token",
         csrf_token.to_owned(),
-        app_state.auth_cookie_domain.to_owned(),
+        auth_domain,
         SameSite::Strict,
     )
     .await;
@@ -224,11 +226,12 @@ async fn google_verify_response(
         }
     };
     let session_response = get_session_response(user_identity, &app_state.cloudflare_config).await;
+    let auth_domain = app_state.auth_domain.host_str().unwrap().to_owned();
 
     let user_cookie = cookie::create_cookie(
         "user_identity",
         session_response.user_identity.to_owned(),
-        app_state.auth_cookie_domain.to_owned(),
+        auth_domain.to_owned(),
         SameSite::None,
     )
     .await;
@@ -238,7 +241,7 @@ async fn google_verify_response(
     let exp_cookie = cookie::create_cookie(
         "expiration",
         expiration.to_string(),
-        app_state.auth_cookie_domain.to_owned(),
+        auth_domain,
         SameSite::None,
     )
     .await;
@@ -257,6 +260,7 @@ async fn google_verify_response(
 
 #[component]
 pub fn OAuth2Response() -> impl IntoView {
+    use crate::constants;
     use leptos::logging::log;
     use leptos_use::use_window;
     use wasm_bindgen::JsValue;
@@ -275,7 +279,7 @@ pub fn OAuth2Response() -> impl IntoView {
             let window = window.as_ref().unwrap();
             let opener = window.opener().unwrap();
             let opener = Window::from(opener);
-            match opener.post_message(&JsValue::from_str(&message), "*") {
+            match opener.post_message(&JsValue::from_str(&message), constants::AUTH_URL.as_str()) {
                 Err(error) => log!(
                     "post result: {}",
                     error.as_string().unwrap_or("".to_owned())
