@@ -1,6 +1,6 @@
 use crate::{
     error_template::{AppError, ErrorTemplate},
-    page::{anonymous, login},
+    page::{anonymous, auth_init, login, verify_creds},
     providers::*,
 };
 use leptos::*;
@@ -33,6 +33,8 @@ pub fn App() -> impl IntoView {
                 <Routes>
                     <Route path="" view=login::LandingPage/>
                     <Route path="/anonymous_identity" view=anonymous::AnonymousIdentity/>
+                    <Route path="/auth_init" view=auth_init::Staging/>
+                    <Route path="/verify_creds" view=verify_creds::VerifyCreds/>
                     <Route path="/google_login" view=google::Login/>
                     <Route path="/google_oauth2_response" view=google::OAuth2Response/>
                     <Route path="/internetcomputer" view=internetcomputer::Login/>

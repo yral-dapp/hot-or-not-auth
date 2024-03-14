@@ -1,5 +1,6 @@
 mod app;
 mod auth;
+mod constants;
 mod error_template;
 mod fileserve;
 mod init;
@@ -70,12 +71,15 @@ async fn main() {
     use handlers::*;
     use leptos::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
+    use reqwest::Url;
+    use std::time::Duration;
     use tower::ServiceBuilder;
+    use tower_http::{timeout::TimeoutLayer, trace::TraceLayer};
 
     init::logging();
-    let auth_config = init::configure();
-    let oauth2_client = init::oauth2_client_init(&auth_config);
-    let cloudflare_config = init::cloudflare_config(&auth_config);
+    let app_config = init::configure();
+    let oauth2_client = init::oauth2_client_init(&app_config);
+    let cloudflare_config = init::cloudflare_config(&app_config);
 
     let conf = get_configuration(None).await.unwrap();
     let leptos_options = conf.leptos_options;
@@ -84,11 +88,12 @@ async fn main() {
 
     let app_state = identity::AppState {
         leptos_options,
-        key: Key::from(auth_config.auth_sign_key.as_bytes()),
+        key: Key::from(app_config.auth.sign_key.as_bytes()),
         routes: routes.clone(),
         oauth2_client,
         reqwest_client: reqwest::Client::new(),
-        auth_cookie_domain: auth_config.auth_cookie_domain,
+        auth_cookie_domain: app_config.auth.cookie_domain,
+        app_url: Url::parse(&app_config.auth.app_url).unwrap(),
         cloudflare_config,
     };
     let app_state: identity::AppState = app_state;
@@ -105,10 +110,17 @@ async fn main() {
         .leptos_routes_with_handler(routes, get(leptos_routes_handler))
         .fallback(file_and_error_handler)
         .layer(service)
+        .layer((
+            TraceLayer::new_for_http(),
+            // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
+            // requests don't hang forever.
+            TimeoutLayer::new(Duration::from_secs(10)),
+        ))
         .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     axum::serve(listener, app.into_make_service())
+        .with_graceful_shutdown(shutdown_signal())
         .await
         .unwrap();
 }
@@ -118,4 +130,31 @@ pub fn main() {
     // no client-side main function
     // unless we want this to work with e.g., Trunk for a purely client-side app
     // see lib.rs for hydration function instead
+}
+
+#[cfg(feature = "ssr")]
+async fn shutdown_signal() {
+    use tokio::signal;
+
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
 }

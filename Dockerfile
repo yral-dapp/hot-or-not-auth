@@ -4,7 +4,7 @@ WORKDIR /bin
 
 COPY ./target/x86_64-unknown-linux-gnu/release/hot-or-not-auth .
 COPY ./target/site ./site
-COPY ./AuthConfig.toml .
+COPY ./AppConfig.toml .
 
 ARG CLOUDFLARE_ACCOUNT_IDENTIFIER
 ARG CLOUDFLARE_NAMESPACE_IDENTIFIER

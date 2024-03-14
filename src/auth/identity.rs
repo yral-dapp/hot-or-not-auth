@@ -215,6 +215,7 @@ pub struct AppState {
     pub oauth2_client: oauth2::basic::BasicClient,
     pub reqwest_client: reqwest::Client,
     pub auth_cookie_domain: String,
+    pub app_url: reqwest::Url,
     pub cloudflare_config: cloudflare_api::connect::ApiClientConfig,
 }
 

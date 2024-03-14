@@ -1,8 +1,8 @@
 use crate::auth::agent_js::SessionResponse;
 use cfg_if::cfg_if;
-use leptos::SignalGet;
 use leptos::*;
 use leptos_router::{use_query, Params};
+use web_sys::Window;
 
 cfg_if! {
 if #[cfg(feature="ssr")] {
@@ -94,12 +94,19 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
 
 #[component]
 pub fn Login() -> impl IntoView {
+    use leptos_use::use_window;
+
     let g_auth = Action::<GoogleAuthUrl, _>::server();
     g_auth.dispatch(GoogleAuthUrl {});
 
     create_effect(move |_| {
         if let Some(Ok(redirect)) = g_auth.value().get() {
-            window().location().set_href(&redirect).unwrap();
+            use_window()
+                .as_ref()
+                .unwrap()
+                .location()
+                .set_href(&redirect)
+                .unwrap();
         }
     });
 
@@ -251,8 +258,8 @@ async fn google_verify_response(
 #[component]
 pub fn OAuth2Response() -> impl IntoView {
     use leptos::logging::log;
+    use leptos_use::use_window;
     use wasm_bindgen::JsValue;
-    use web_sys::{window, Window};
 
     let handle_oauth2_redirect = Action::<GoogleVerifyResponse, _>::server();
     create_effect(move |_| {
@@ -264,7 +271,9 @@ pub fn OAuth2Response() -> impl IntoView {
                 }
                 Err(error) => error.to_string(),
             };
-            let opener = window().unwrap().opener().unwrap();
+            let window = use_window();
+            let window = window.as_ref().unwrap();
+            let opener = window.opener().unwrap();
             let opener = Window::from(opener);
             match opener.post_message(&JsValue::from_str(&message), "*") {
                 Err(error) => log!(
@@ -273,6 +282,7 @@ pub fn OAuth2Response() -> impl IntoView {
                 ),
                 Ok(_) => {}
             }
+            let _ = window.close();
         }
     });
 

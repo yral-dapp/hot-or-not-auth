@@ -1,5 +1,6 @@
 mod app;
 mod auth;
+mod constants;
 mod error_template;
 mod page;
 mod providers;
