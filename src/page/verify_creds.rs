@@ -43,10 +43,7 @@ pub fn verify_creds() -> impl IntoView {
             error!("Error verifying credentials: {}", error.to_string());
             handle_error("Invalid credentials");
         }
-        None => {
-            error!("No server response!");
-            handle_error("No server response");
-        }
+        None => {}
     });
 
     view! {
@@ -59,20 +56,26 @@ fn handle_error(message: &str) {
     use crate::constants;
     use leptos_use::use_window;
     use wasm_bindgen::JsValue;
+    use web_sys::Window;
 
     error!("handle error: {}", message);
 
     let window = use_window();
     let window = window.as_ref().unwrap();
-    let opener = window.parent().unwrap().unwrap();
+    let opener = window.opener().unwrap();
+    let opener = Window::from(opener);
     match opener.post_message(
         &JsValue::from_str(&message),
         &constants::AUTH_DOMAIN.as_str(),
     ) {
-        Err(error) => error!("post result: {:?}", error),
-        Ok(_) => {}
+        Err(error) => {
+            error!("post result: {:?}", error);
+            let _ = window.close();
+        }
+        Ok(_) => {
+            let _ = window.close();
+        }
     }
-    // let _ = window.close();
 }
 
 #[server]

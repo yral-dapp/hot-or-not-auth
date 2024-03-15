@@ -7,7 +7,6 @@ use leptos::{
 use leptos_use::{use_event_listener, use_window};
 use reqwest::Url;
 use wasm_bindgen::JsValue;
-use web_sys::Window;
 
 #[component]
 pub fn staging() -> impl IntoView {
@@ -16,13 +15,13 @@ pub fn staging() -> impl IntoView {
         Some(Ok(u)) => {
             let window = use_window();
             let window = window.as_ref().unwrap();
-            let _ = window.open_with_url_and_target(&u, "_blank");
-            _ = use_event_listener(use_window(), ev::message, move |msg| {
+            let _new_window = window.open_with_url_and_target(&u, "_blank");
+
+            let _ = use_event_listener(use_window(), ev::message, move |msg| {
                 let message = msg.data().as_string();
 
-                let url_origin = Url::parse(&msg.origin());
-                if url_origin
-                    .map(|u| u.origin() != constants::AUTH_DOMAIN.origin())
+                if Url::parse(&msg.origin())
+                    .map(|u| u.origin() == constants::AUTH_DOMAIN.origin())
                     .unwrap_or_default()
                 {
                     match message.as_deref() {
@@ -31,22 +30,20 @@ pub fn staging() -> impl IntoView {
                             error!("{}", message.unwrap());
                         }
                         Some(session) => {
-                            let window = use_window();
-                            let window = window.as_ref().unwrap();
-                            let opener = window.opener().unwrap();
-                            let opener = Window::from(opener);
-                            match opener.post_message(
+                            log!("session received: {}", session.len());
+                            let parent = use_window().as_ref().unwrap().parent().unwrap().unwrap();
+                            match parent.post_message(
                                 &JsValue::from_str(&session),
                                 constants::APP_DOMAIN.as_str(),
                             ) {
-                                Err(error) => log!(
+                                Err(error) => error!(
                                     "post result to app failed: {}",
                                     error.as_string().unwrap_or("".to_owned())
                                 ),
-                                Ok(_) => {}
+                                Ok(_) => log!("session posted"),
                             }
                         }
-                        _ => {
+                        None => {
                             // no action
                         }
                     }

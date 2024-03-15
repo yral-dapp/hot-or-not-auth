@@ -34,7 +34,7 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     // enable after integration
     let signed_jar: SignedCookieJar =
         leptos_axum::extract_with_state::<SignedCookieJar<Key>, AppState>(&app_state).await?;
-    let _user_identity = match signed_jar.get("user_identity") {
+    let user_identity = match signed_jar.get("user_identity") {
         Some(val) => Some(val.value().to_owned()),
         None => None,
     }
@@ -270,7 +270,7 @@ pub fn OAuth2Response() -> impl IntoView {
         if let Some(Ok(session_response)) = handle_oauth2_redirect.value().get() {
             let message = match serde_json::to_string(&session_response) {
                 Ok(session) => {
-                    leptos::logging::log!("Session: {}", session.len());
+                    log!("Session: {}", session.len());
                     session
                 }
                 Err(error) => error.to_string(),
@@ -283,13 +283,17 @@ pub fn OAuth2Response() -> impl IntoView {
                 &JsValue::from_str(&message),
                 constants::AUTH_DOMAIN.as_str(),
             ) {
-                Err(error) => log!(
-                    "post result to auth failed: {}",
-                    error.as_string().unwrap_or("".to_owned())
-                ),
-                Ok(_) => {}
+                Err(error) => {
+                    log!(
+                        "post result to auth failed: {}",
+                        error.as_string().unwrap_or("".to_owned())
+                    );
+                    // let _ = window.close();
+                }
+                Ok(_) => {
+                    let _ = window.close();
+                }
             }
-            let _ = window.close();
         }
     });
 
