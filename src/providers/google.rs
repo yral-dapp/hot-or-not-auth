@@ -2,7 +2,6 @@ use crate::auth::agent_js::SessionResponse;
 use cfg_if::cfg_if;
 use leptos::*;
 use leptos_router::{use_query, Params};
-use web_sys::Window;
 
 cfg_if! {
 if #[cfg(feature="ssr")] {
@@ -264,6 +263,7 @@ pub fn OAuth2Response() -> impl IntoView {
     use leptos::logging::log;
     use leptos_use::use_window;
     use wasm_bindgen::JsValue;
+    use web_sys::Window;
 
     let handle_oauth2_redirect = Action::<GoogleVerifyResponse, _>::server();
     create_effect(move |_| {

@@ -1,10 +1,13 @@
 use crate::constants;
+use leptos::logging::log;
 use leptos::{
     logging::{error, warn},
     *,
 };
 use leptos_use::{use_event_listener, use_window};
 use reqwest::Url;
+use wasm_bindgen::JsValue;
+use web_sys::Window;
 
 #[component]
 pub fn staging() -> impl IntoView {
@@ -12,6 +15,7 @@ pub fn staging() -> impl IntoView {
         let message = msg.data().as_string();
         let url_origin = Url::parse(&msg.origin());
         if url_origin
+            .clone()
             .map(|u| u.origin() != constants::APP_DOMAIN.origin())
             .unwrap_or_default()
         {
