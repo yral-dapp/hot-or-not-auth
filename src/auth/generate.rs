@@ -14,10 +14,10 @@ pub fn key_pair() -> Result<KeyPair, String> {
         .public_key()
         .to_string()
         .replace('\n', "")
-        // .strip_prefix("-----BEGIN PUBLIC KEY-----")
-        // .unwrap()
-        // .strip_suffix("-----END PUBLIC KEY-----")
-        // .unwrap()
+        .strip_prefix("-----BEGIN PUBLIC KEY-----")
+        .unwrap()
+        .strip_suffix("-----END PUBLIC KEY-----")
+        .unwrap()
         .to_owned();
     let private_key = secret.to_bytes().to_vec();
     let pem = secret

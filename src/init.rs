@@ -97,7 +97,6 @@ pub struct AppConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AuthConfig {
-    pub cookie_domain: String,
     pub ic_url: String,
     pub sign_key: String,
     pub auth_domain: String,

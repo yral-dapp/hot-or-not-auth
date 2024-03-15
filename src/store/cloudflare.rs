@@ -88,7 +88,7 @@ pub async fn delete_kv(key_name: &str, cloudflare_config: &ApiClientConfig) -> O
     match cloudflare_config.cloudflare_client.send(end_point).await {
         Ok(result) => {
             info!("delete: {:?}", result);
-            Some(result.result.unwrap())
+            result.result
         }
         Err(error) => {
             error!("delete error: {}", error);
