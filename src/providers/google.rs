@@ -68,7 +68,7 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
         "pkce_verifier",
         pkce_verifier.to_owned(),
         auth_domain.to_owned(),
-        SameSite::Strict,
+        SameSite::None,
     )
     .await;
     // jar = jar.remove(Cookie::from("pkce_verifier"));
@@ -77,7 +77,7 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
         "csrf_token",
         csrf_token.to_owned(),
         auth_domain,
-        SameSite::Strict,
+        SameSite::None,
     )
     .await;
     // jar = jar.remove(Cookie::from("csrf_token"));

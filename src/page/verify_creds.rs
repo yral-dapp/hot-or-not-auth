@@ -2,15 +2,22 @@ use leptos::{logging::error, *};
 
 #[component]
 pub fn verify_creds() -> impl IntoView {
-    use leptos_router::use_params_map;
+    use leptos_router::use_query_map;
     use leptos_use::use_window;
 
-    let params = use_params_map();
-    let user_identity = move || params.with(|params| params.get("u").cloned());
-    let expiration = move || params.with(|params| params.get("e").cloned());
+    let params = use_query_map();
+    let user_identity = move || params.with_untracked(|params| params.get("u").cloned());
+    let expiration = move || params.with_untracked(|params| params.get("e").cloned());
 
     if user_identity().is_none() || expiration().is_none() {
-        handle_error("Invalid parameters");
+        handle_error(
+            format!(
+                "Invalid parameters: u: {} e: {}",
+                user_identity().is_some(),
+                expiration().is_some()
+            )
+            .as_str(),
+        );
     }
 
     let resource = create_local_resource(
@@ -53,17 +60,19 @@ fn handle_error(message: &str) {
     use leptos_use::use_window;
     use wasm_bindgen::JsValue;
 
+    error!("handle error: {}", message);
+
     let window = use_window();
     let window = window.as_ref().unwrap();
     let opener = window.parent().unwrap().unwrap();
     match opener.post_message(
         &JsValue::from_str(&message),
-        &constants::AUTH_DOMAIN.host_str().unwrap(),
+        &constants::AUTH_DOMAIN.as_str(),
     ) {
         Err(error) => error!("post result: {:?}", error),
         Ok(_) => {}
     }
-    let _ = window.close();
+    // let _ = window.close();
 }
 
 #[server]
@@ -96,13 +105,13 @@ pub async fn verify_payload(
         "user_identity",
         user_identity,
         auth_domain.to_owned(),
-        SameSite::Strict,
+        SameSite::None,
     )
     .await;
     jar = jar.add(user_cookie);
 
     let expiration =
-        cookie::create_cookie("expiration", expiration, auth_domain, SameSite::Strict).await;
+        cookie::create_cookie("expiration", expiration, auth_domain, SameSite::None).await;
     jar = jar.add(expiration);
 
     let jar_into_response = jar.into_response();
