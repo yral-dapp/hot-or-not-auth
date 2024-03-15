@@ -270,7 +270,7 @@ pub fn OAuth2Response() -> impl IntoView {
         if let Some(Ok(session_response)) = handle_oauth2_redirect.value().get() {
             let message = match serde_json::to_string(&session_response) {
                 Ok(session) => {
-                    leptos::logging::log!("Session: {}", session);
+                    leptos::logging::log!("Session: {}", session.len());
                     session
                 }
                 Err(error) => error.to_string(),
@@ -279,9 +279,12 @@ pub fn OAuth2Response() -> impl IntoView {
             let window = window.as_ref().unwrap();
             let opener = window.opener().unwrap();
             let opener = Window::from(opener);
-            match opener.post_message(&JsValue::from_str(&message), constants::AUTH_URL.as_str()) {
+            match opener.post_message(
+                &JsValue::from_str(&message),
+                constants::AUTH_DOMAIN.as_str(),
+            ) {
                 Err(error) => log!(
-                    "post result: {}",
+                    "post result to auth failed: {}",
                     error.as_string().unwrap_or("".to_owned())
                 ),
                 Ok(_) => {}

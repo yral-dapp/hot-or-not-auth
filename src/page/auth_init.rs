@@ -1,4 +1,4 @@
-use crate::constants::WEB_URL;
+use crate::constants;
 use leptos::{
     logging::{error, warn},
     *,
@@ -9,34 +9,57 @@ use reqwest::Url;
 #[component]
 pub fn staging() -> impl IntoView {
     _ = use_event_listener(use_window(), ev::message, move |msg| {
-        if Url::parse(&msg.origin())
-            .map(|u| u.origin() != WEB_URL.origin())
+        let message = msg.data().as_string();
+        let url_origin = Url::parse(&msg.origin());
+        if url_origin
+            .map(|u| u.origin() != constants::APP_DOMAIN.origin())
             .unwrap_or_default()
         {
-            warn!("Url mismatch: {}", msg.origin());
-            return;
-        }
-        let message = msg.data().as_string();
-        match message.as_deref() {
-            Some("login") => {
-                let url = create_local_resource(move || (), |_| get_redirect_url());
-                create_effect(move |_| match url.get() {
-                    Some(Ok(u)) => {
-                        let window = use_window();
-                        let window = window.as_ref().unwrap();
-                        let _ = window.open_with_url_and_target(&u, "_blank");
+            match message.as_deref() {
+                Some("login") => {
+                    let url = create_local_resource(move || (), |_| get_redirect_url());
+                    create_effect(move |_| match url.get() {
+                        Some(Ok(u)) => {
+                            let window = use_window();
+                            let window = window.as_ref().unwrap();
+                            let _ = window.open_with_url_and_target(&u, "_blank");
+                        }
+                        Some(Err(error)) => warn!("Failed to generate url: {}", error),
+                        None => error!("No url generated"),
+                    });
+                }
+                _ => {
+                    // no action
+                }
+            }
+        } else if url_origin
+            .map(|u| u.origin() != constants::AUTH_DOMAIN.origin())
+            .unwrap_or_default()
+        {
+            match message.as_deref() {
+                Some("Invalid parameters")
+                | Some("Invalid credentials")
+                | Some("No server response") => {
+                    // TODO: send back error message to ssr
+                }
+                Some(session) => {
+                    let window = use_window();
+                    let window = window.as_ref().unwrap();
+                    let opener = window.opener().unwrap();
+                    let opener = Window::from(opener);
+                    match opener
+                        .post_message(&JsValue::from_str(&session), constants::APP_DOMAIN.as_str())
+                    {
+                        Err(error) => log!(
+                            "post result to app failed: {}",
+                            error.as_string().unwrap_or("".to_owned())
+                        ),
+                        Ok(_) => {}
                     }
-                    Some(Err(error)) => warn!("Failed to generate url: {}", error),
-                    None => error!("No url generated"),
-                });
-            }
-            Some("Invalid parameters")
-            | Some("Invalid credentials")
-            | Some("No server response") => {
-                // TODO: send back error message to ssr
-            }
-            _ => {
-                // no action
+                }
+                _ => {
+                    // no action
+                }
             }
         }
     });

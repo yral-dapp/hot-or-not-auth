@@ -58,7 +58,7 @@ fn handle_error(message: &str) {
     let opener = window.parent().unwrap().unwrap();
     match opener.post_message(
         &JsValue::from_str(&message),
-        &constants::AUTH_URL.host_str().unwrap(),
+        &constants::AUTH_DOMAIN.host_str().unwrap(),
     ) {
         Err(error) => error!("post result: {:?}", error),
         Ok(_) => {}
