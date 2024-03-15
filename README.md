@@ -37,3 +37,9 @@ Prepares Delegation Identity.
 
 
 Note: Right now in POC, SSR is ommitted and Front-end directly connecting to auth service
+
+## How to build
+
+```bash
+cargo leptos build --release
+```

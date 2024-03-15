@@ -3,9 +3,6 @@ use leptos_router::A;
 
 #[component]
 pub fn LandingPage() -> impl IntoView {
-    // check if valid cookie with session
-    // if not show error message
-
     view! {
     <div class="fade-in absolute z-[100] block h-full w-full bg-black/90 text-white">
         <div class="flex h-full w-full flex-col items-center justify-center space-y-20 overflow-y-auto">

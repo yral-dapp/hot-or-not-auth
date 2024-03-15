@@ -10,9 +10,14 @@ pub async fn create_cookie<'c>(
     let mut cookie = Cookie::new(cookie_name, cookie_value);
     cookie.set_domain(cookie_domain.to_owned());
     cookie.set_same_site(same_site);
+    cookie.set_path("/");
     set_cookie_expiry(&mut cookie);
     cookie.set_http_only(true);
     cookie.set_secure(true);
+    match same_site {
+        SameSite::None => cookie.set_partitioned(true),
+        _ => {}
+    }
     cookie
 }
 
