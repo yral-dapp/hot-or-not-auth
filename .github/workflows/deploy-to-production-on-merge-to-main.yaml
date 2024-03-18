@@ -44,4 +44,4 @@ jobs:
           flyctl secrets set --stage AUTH_SIGN_KEY="$AUTH_SIGN_KEY"
           flyctl secrets set --stage CLOUDFLARE_API_TOKEN="$CLOUDFLARE_API_TOKEN"
           flyctl secrets set --stage GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET"
-          flyctl deploy --remote-only --build-arg CLOUDFLARE_ACCOUNT_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_ACCOUNT_ID }} --build-arg CLOUDFLARE_NAMESPACE_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_NAMESPACE_ID }} --build-arg GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_ID }}
+          flyctl deploy --local-only --build-arg CLOUDFLARE_ACCOUNT_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_ACCOUNT_ID }} --build-arg CLOUDFLARE_NAMESPACE_IDENTIFIER=${{ secrets.CLOUDFLARE_WORKERS_KV_NAMESPACE_ID }} --build-arg GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_SIGNING_OAUTH_CLIENT_CREDENTIAL_CLIENT_ID }}
