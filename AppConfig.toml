@@ -1,16 +1,12 @@
-[auth]
-ic_url = "https://ic0.app"
-sign_key = ""
+auth_ic_url = "https://ic0.app"
+auth_sign_key = ""
 auth_domain = "https://hot-or-not-auth.fly.dev"
 app_domain = "https://hot-or-not-web-leptos-ssr.fly.dev"
 
-[cloudflare]
-account_identifier = ""
-api_token = ""
-namespace_identifier = ""
+cloudflare_account_identifier = ""
+cloudflare_api_token = ""
+cloudflare_namespace_identifier = ""
 
-[[oauth]]
-provider_name = "google"
-auth_landing_url = "https://hot-or-not-auth.fly.dev/google_oauth2_response"
-client_id = ""
-client_secret = ""
+google_auth_landing_url = "https://hot-or-not-auth.fly.dev/google_oauth2_response"
+google_client_id = ""
+google_client_secret = ""

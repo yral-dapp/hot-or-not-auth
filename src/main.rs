@@ -88,12 +88,12 @@ async fn main() {
 
     let app_state = identity::AppState {
         leptos_options,
-        key: Key::from(app_config.auth.sign_key.as_bytes()),
+        key: Key::from(app_config.auth_sign_key.as_bytes()),
         routes: routes.clone(),
         oauth2_client,
         reqwest_client: reqwest::Client::new(),
-        auth_domain: Url::parse(&app_config.auth.auth_domain).unwrap(),
-        app_domain: Url::parse(&app_config.auth.app_domain).unwrap(),
+        auth_domain: Url::parse(&app_config.auth_domain).unwrap(),
+        app_domain: Url::parse(&app_config.auth_app_domain).unwrap(),
         cloudflare_config,
     };
     let app_state: identity::AppState = app_state;
