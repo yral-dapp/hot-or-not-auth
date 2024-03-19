@@ -64,26 +64,33 @@ pub fn oauth2_client_init(config: &AppConfig) -> oauth2::basic::BasicClient {
 }
 
 #[cfg(feature = "ssr")]
-pub fn cors_layer() -> CorsLayer {
-    // TODO: Get values from configuration
-
-    let origins = [
-        "http://localhost".parse().unwrap(),
-        "http://127.0.0.1".parse().unwrap(),
-        "http://0.0.0.0".parse().unwrap(),
-        "https://hot-or-not-web-leptos-ssr-rupansh.fly.dev"
-            .parse()
-            .unwrap(),
-        "https://hot-or-not-auth.fly.dev".parse().unwrap(),
-        "https://hot-or-not-auth-stage.fly.dev".parse().unwrap(),
-        "https://hot-or-not-web-leptos-ssr.fly.dev".parse().unwrap(),
-    ];
-    let cors_layer = CorsLayer::new()
-        .allow_credentials(true)
-        .allow_origin(origins)
-        .allow_methods([Method::GET, Method::POST])
-        .allow_headers([ACCEPT, CONTENT_TYPE, ACCEPT_LANGUAGE, CONTENT_LANGUAGE]);
-    cors_layer
+pub fn cors_layer(env: leptos_config::Env) -> CorsLayer {
+    match env {
+        leptos_config::Env::DEV => CorsLayer::permissive(),
+        leptos_config::Env::PROD => {
+            let origins = [
+                "http://localhost".parse().unwrap(),
+                "http://127.0.0.1".parse().unwrap(),
+                "http://0.0.0.0".parse().unwrap(),
+                "https://yral.com".parse().unwrap(),
+                "https://www.yral.com".parse().unwrap(),
+                "https://hot-or-not-web-leptos-ssr.fly.dev".parse().unwrap(),
+                "https://auth.yral.com".parse().unwrap(),
+                "https://hot-or-not-auth.fly.dev".parse().unwrap(),
+            ];
+            CorsLayer::new()
+                .allow_credentials(true)
+                .allow_origin(origins)
+                .allow_methods([
+                    Method::GET,
+                    Method::POST,
+                    Method::OPTIONS,
+                    Method::PUT,
+                    Method::HEAD,
+                ])
+                .allow_headers([ACCEPT, CONTENT_TYPE, ACCEPT_LANGUAGE, CONTENT_LANGUAGE])
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]

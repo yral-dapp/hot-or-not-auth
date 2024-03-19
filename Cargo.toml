@@ -26,6 +26,7 @@ k256 = { version = "0.13.3", optional = true }
 leptos = { version = "0.6.9", features = ["nightly"] }
 leptos-use = "0.10.5"
 leptos_axum = { version = "0.6.9", optional = true }
+leptos_config = { version = "0.6.9", optional = true }
 leptos_meta = { version = "0.6.9", features = ["nightly"] }
 leptos_router = { version = "0.6.9", features = ["nightly"] }
 log = "0.4.21"
@@ -80,6 +81,7 @@ ssr = [
     "dep:tracing-subscriber",
     "leptos-use/ssr",
     "leptos/ssr",
+    "leptos_config",
     "leptos_meta/ssr",
     "leptos_router/ssr",
 ]

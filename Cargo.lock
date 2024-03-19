@@ -1460,6 +1460,7 @@ dependencies = [
  "leptos",
  "leptos-use",
  "leptos_axum",
+ "leptos_config",
  "leptos_meta",
  "leptos_router",
  "log",
