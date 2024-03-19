@@ -10,7 +10,7 @@ if #[cfg(feature="ssr")] {
             cookie,
             identity::{get_session_response, AppState},
         },
-        store::cloudflare::{delete_kv, read_kv, write_kv},
+        store::KVStore,
     };
     use axum::{http::header, response::IntoResponse};
     use axum_extra::extract::cookie::{Cookie, Key, PrivateCookieJar, SameSite, SignedCookieJar};
@@ -201,31 +201,30 @@ async fn google_verify_response(
     };
 
     let oauth2_kv_key = format!("google_sub_id_{}", sub_openid);
-    let user_identity = match read_kv(&oauth2_kv_key, &app_state.cloudflare_config).await {
+    let user_identity = match app_state.kv_store.read_kv(&oauth2_kv_key).await {
         Some(user_public_key) => {
             if !user_identity.eq(&user_public_key) {
                 // returning user with different temporary session
                 // delete current temp session
                 // TODO: check if pubkey with google exists if not use this
                 info!("Deleting: {}", user_identity);
-                let _ignore = delete_kv(&user_identity, &app_state.cloudflare_config).await;
+                let _ignore = app_state.kv_store.delete_kv(&user_identity).await;
                 Some(user_public_key)
             } else {
                 Some(user_identity)
             }
         }
         None => {
-            let _ignore = write_kv(
+            let _ignore = app_state.kv_store.write_kv(
                 &oauth2_kv_key,
                 &user_identity,
                 HashMap::with_capacity(0),
-                &app_state.cloudflare_config,
             )
             .await;
             Some(user_identity)
         }
     };
-    let session_response = get_session_response(user_identity, &app_state.cloudflare_config).await;
+    let session_response = get_session_response(user_identity, &app_state.kv_store).await;
     let cookie_domain = app_state.cookie_domain.host_str().unwrap().to_owned();
 
     info!(

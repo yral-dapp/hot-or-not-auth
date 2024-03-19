@@ -3,7 +3,7 @@ use leptos::*;
 cfg_if::cfg_if! {
 if #[cfg(feature="ssr")] {
     use super::{agent_js, cookie, generate};
-    use crate::store::cloudflare::{read_kv, read_metadata, write_kv};
+    use crate::store::KVStore;
     use axum::{extract::FromRef, http::header, response::IntoResponse};
     use axum_extra::extract::cookie::{Key, SameSite, SignedCookieJar};
     use base64::{engine::general_purpose, Engine as _};
@@ -32,7 +32,7 @@ pub async fn generate_session() -> Result<crate::auth::agent_js::SessionResponse
         None => None,
     };
 
-    let session_response = get_session_response(user_identity, &app_state.cloudflare_config).await;
+    let session_response = get_session_response(user_identity, &app_state.kv_store).await;
 
     info!("user_identity: {}", session_response.user_identity.len());
 
@@ -71,11 +71,12 @@ pub async fn generate_session() -> Result<crate::auth::agent_js::SessionResponse
 #[cfg(feature = "ssr")]
 pub async fn get_session_response(
     user_identity: Option<String>,
-    cloudflare_config: &ApiClientConfig,
+    kv_store: &impl KVStore,
 ) -> agent_js::SessionResponse {
+
     let mut user_identity = user_identity;
     // client identity
-    let user_key_pair = get_user_key_pair(&mut user_identity, cloudflare_config).await;
+    let user_key_pair = get_user_key_pair(&mut user_identity, kv_store).await;
 
     let client_identity =
         Secp256k1Identity::from_pem(user_key_pair.private_pem.as_bytes()).unwrap();
@@ -142,7 +143,7 @@ pub async fn get_session_response(
 #[cfg(feature = "ssr")]
 pub async fn get_user_key_pair(
     user_identity: &mut Option<String>,
-    cloudflare_config: &ApiClientConfig,
+    kv_store: &impl KVStore,
 ) -> generate::KeyPair {
     let user_key_pair: Option<generate::KeyPair> = match user_identity {
         None => {
@@ -152,7 +153,7 @@ pub async fn get_user_key_pair(
         Some(public_key) => {
             // check in kv for this user
             info!("User check: {}", public_key.len());
-            match read_kv(&public_key, cloudflare_config).await {
+            match kv_store.read_kv(&public_key).await {
                 Some(private_key) => {
                     let private_key = match general_purpose::STANDARD_NO_PAD.decode(private_key) {
                         Ok(pk) => Some(pk),
@@ -162,7 +163,7 @@ pub async fn get_user_key_pair(
                         }
                     };
                     let metadata: Option<HashMap<String, String>> =
-                        read_metadata(&public_key, cloudflare_config).await;
+                        kv_store.read_metadata(&public_key).await;
                     if private_key.is_none() || metadata.is_none() {
                         info!("private_key or metadata is empty");
                         None
@@ -193,11 +194,10 @@ pub async fn get_user_key_pair(
                     general_purpose::STANDARD_NO_PAD.encode(&new_key_pair.private_key);
                 let mut metadata = HashMap::new();
                 metadata.insert("private_pem", new_key_pair.private_pem.as_str());
-                let _ = write_kv(
+                let _ = kv_store.write_kv(
                     &new_key_pair.public_key,
                     &private_key,
                     metadata,
-                    cloudflare_config,
                 )
                 .await;
                 user_identity.replace(new_key_pair.public_key.to_owned());
@@ -219,7 +219,7 @@ pub struct AppState {
     pub cookie_domain: reqwest::Url,
     pub auth_domain: reqwest::Url,
     pub app_domain: reqwest::Url,
-    pub cloudflare_config: cloudflare_api::connect::ApiClientConfig,
+    pub kv_store: crate::store::KVStoreProv,
 }
 
 #[cfg(feature = "ssr")]

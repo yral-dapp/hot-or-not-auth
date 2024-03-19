@@ -48,6 +48,8 @@ tracing-subscriber = { version = "0.3.18", optional = true }
 wasm-bindgen = { version = "0.2.92", features = ["serde-serialize"] }
 wasm-bindgen-futures = { version = "0.4.42" }
 web-sys = { version = "0.3", features = ["Window"] }
+redb = { version = "2.0.0-beta0", optional = true }
+enum_dispatch = { version = "0.3.12", optional = true }
 
 [patch.crates-io]
 cookie ={ git = "https://github.com/SergioBenitez/cookie-rs.git", rev = "cf37d0a", optional = true }
@@ -79,12 +81,16 @@ ssr = [
     "dep:tower-http",
     "dep:tracing",
     "dep:tracing-subscriber",
+    "dep:redb",
+    "dep:enum_dispatch",
     "leptos-use/ssr",
     "leptos/ssr",
     "leptos_config",
     "leptos_meta/ssr",
     "leptos_router/ssr",
 ]
+
+mock-kv = []
 
 [profile.release]
 lto = true

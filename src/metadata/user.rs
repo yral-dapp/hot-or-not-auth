@@ -1,6 +1,6 @@
 use crate::{
     auth::{agent_js, generate::from_hex_string, identity::AppState},
-    store::cloudflare::{read_metadata, write_kv},
+    store::KVStore,
 };
 use axum::{extract::State, Json};
 use ic_agent::{
@@ -24,11 +24,10 @@ pub async fn update_user_metadata(
     metadata.insert("user_canister_id", &user_details.user_canister_id);
     metadata.insert("user_name", &user_details.user_name);
 
-    let _ignore = write_kv(
+    let _ignore = app_state.kv_store.write_kv(
         &user_principal_id.to_text(),
         "",
         metadata,
-        &app_state.cloudflare_config,
     )
     .await;
 
@@ -41,7 +40,7 @@ pub async fn get_user_canister(
 ) -> Result<String, String> {
     info!("{}", user_principal_id);
 
-    match read_metadata(&user_principal_id, &app_state.cloudflare_config).await {
+    match app_state.kv_store.read_metadata(&user_principal_id).await {
         Some(user_metadata) => {
             let user_canister_id = match user_metadata.get("user_canister_id") {
                 Some(c) => c,

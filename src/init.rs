@@ -39,14 +39,25 @@ pub fn configure() -> AppConfig {
 }
 
 #[cfg(feature = "ssr")]
-pub fn cloudflare_config(config: &AppConfig) -> cloudflare_api::connect::ApiClientConfig {
-    use cloudflare_api::connect::{ApiClientConfig, Credentials, HttpApiClient};
-    ApiClientConfig {
-        account_identifier: config.cloudflare_account_identifier.clone(),
-        namespace_identifier: config.cloudflare_namespace_identifier.clone(),
-        cloudflare_client: HttpApiClient::new(&Credentials::UserAuthToken {
-            token: config.cloudflare_api_token.clone(),
-        }),
+pub fn kv_store(config: &AppConfig) -> crate::store::KVStoreProv {
+    use crate::store::KVStoreProv;
+    #[cfg(not(feature = "mock-kv"))]
+    {
+        use cloudflare_api::connect::{ApiClientConfig, Credentials, HttpApiClient};
+        KVStoreProv::Cf(ApiClientConfig {
+            account_identifier: config.cloudflare_account_identifier.clone(),
+            namespace_identifier: config.cloudflare_namespace_identifier.clone(),
+            cloudflare_client: HttpApiClient::new(&Credentials::UserAuthToken {
+                token: config.cloudflare_api_token.clone(),
+            }),
+        })
+    }
+
+    #[cfg(feature = "mock-kv")]
+    {
+        _ = config;
+        use crate::store::mock::MockKV; 
+        KVStoreProv::Mock(MockKV::new().unwrap())
     }
 }
 

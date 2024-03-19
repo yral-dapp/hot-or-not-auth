@@ -79,7 +79,7 @@ async fn main() {
     init::logging();
     let app_config = init::configure();
     let oauth2_client = init::oauth2_client_init(&app_config);
-    let cloudflare_config = init::cloudflare_config(&app_config);
+    let kv_store = init::kv_store(&app_config);
 
     let conf = get_configuration(None).await.unwrap();
     let leptos_options = conf.leptos_options;
@@ -96,7 +96,7 @@ async fn main() {
         cookie_domain: Url::parse(&app_config.cookie_domain).unwrap(),
         auth_domain: Url::parse(&app_config.auth_domain).unwrap(),
         app_domain: Url::parse(&app_config.app_domain).unwrap(),
-        cloudflare_config,
+        kv_store,
     };
     let app_state: identity::AppState = app_state;
 
