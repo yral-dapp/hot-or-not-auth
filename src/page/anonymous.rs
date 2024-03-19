@@ -22,7 +22,7 @@ pub fn AnonymousIdentity() -> impl IntoView {
             };
             let parent = use_window().as_ref().unwrap().parent().unwrap().unwrap();
             // TODO: skip for window.self
-            match parent.post_message(&JsValue::from_str(&message), constants::APP_DOMAIN.as_str())
+            match parent.post_message(&JsValue::from_str(&message), "*")
             {
                 Err(error) => log!("post result: {:?}", error),
                 Ok(_) => {}

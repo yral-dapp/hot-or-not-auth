@@ -48,7 +48,7 @@ pub fn staging() -> impl IntoView {
                             let parent = use_window().as_ref().unwrap().parent().unwrap().unwrap();
                             match parent.post_message(
                                 &JsValue::from_str(&message),
-                                constants::APP_DOMAIN.as_str(),
+                                "*",
                             ) {
                                 Err(error) => error!(
                                     "post result to app failed: {}",
