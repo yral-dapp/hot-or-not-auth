@@ -2,6 +2,7 @@ use crate::auth::agent_js::SessionResponse;
 use cfg_if::cfg_if;
 use leptos::*;
 use leptos_router::{use_query, Params};
+use wasm_bindgen::JsCast;
 
 cfg_if! {
 if #[cfg(feature="ssr")] {
@@ -93,6 +94,7 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     Ok(auth_url.to_string())
 }
 
+/// User is shown login options
 #[component]
 pub fn Login() -> impl IntoView {
     use leptos_use::use_window;
@@ -257,10 +259,11 @@ async fn google_verify_response(
     Ok(session_response)
 }
 
+/// After user completes login user is redirected to this page
 #[component]
 pub fn OAuth2Response() -> impl IntoView {
     use crate::constants;
-    use leptos::logging::log;
+    use leptos::logging::{error, log};
     use leptos_use::use_window;
     use wasm_bindgen::JsValue;
     use web_sys::Window;
@@ -279,13 +282,12 @@ pub fn OAuth2Response() -> impl IntoView {
             let window = window.as_ref().unwrap();
             let opener = window.opener().unwrap();
             let opener = Window::from(opener);
-            match opener.post_message(&JsValue::from_str(&message), constants::APP_DOMAIN.as_str())
-            {
+            match opener.post_message(
+                &JsValue::from_str(&message),
+                constants::AUTH_DOMAIN.as_str(),
+            ) {
                 Err(error) => {
-                    log!(
-                        "post result to auth failed: {}",
-                        error.as_string().unwrap_or("".to_owned())
-                    );
+                    error!("post result to auth failed: {:?}", error);
                     // let _ = window.close();
                 }
                 Ok(_) => {

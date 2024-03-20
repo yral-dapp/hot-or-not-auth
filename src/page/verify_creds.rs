@@ -1,5 +1,7 @@
 use leptos::{logging::error, *};
 
+/// Opens in new window
+/// Verifies session in query params
 #[component]
 pub fn verify_creds() -> impl IntoView {
     use leptos_router::use_query_map;

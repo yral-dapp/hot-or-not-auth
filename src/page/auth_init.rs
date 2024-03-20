@@ -8,6 +8,7 @@ use leptos_use::{use_event_listener, use_window};
 use reqwest::Url;
 use wasm_bindgen::JsValue;
 
+/// When user wants to login this opens in iframe
 #[component]
 pub fn staging() -> impl IntoView {
     let url = create_local_resource(move || (), |_| get_redirect_url());
@@ -15,10 +16,11 @@ pub fn staging() -> impl IntoView {
         Some(Ok(u)) => {
             let window = use_window();
             let window = window.as_ref().unwrap();
-            let _new_window = window.open_with_url_and_target(&u, "_blank");
+            let _new_window = window.open_with_url_and_target(&u, "yral_auth");
 
             let _ = use_event_listener(use_window(), ev::message, move |msg| {
                 let message = msg.data().as_string();
+                warn!("init postMessage received: {:?}", message);
 
                 if Url::parse(&msg.origin())
                     .map(|u| u.origin() == constants::AUTH_DOMAIN.origin())
@@ -47,6 +49,8 @@ pub fn staging() -> impl IntoView {
                             // no action
                         }
                     }
+                } else {
+                    log!("ignored from: {:?}", msg.origin());
                 }
             });
         }
