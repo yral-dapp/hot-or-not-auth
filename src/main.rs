@@ -93,7 +93,7 @@ async fn main() {
         routes: routes.clone(),
         oauth2_client,
         reqwest_client: reqwest::Client::new(),
-        auth_domain: Url::parse(&app_config.auth_domain).unwrap(),
+        cookie_domain: Url::parse(&app_config.cookie_domain).unwrap(),
         app_domain: Url::parse(&app_config.app_domain).unwrap(),
         cloudflare_config,
     };

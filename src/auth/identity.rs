@@ -37,12 +37,12 @@ pub async fn generate_session() -> Result<crate::auth::agent_js::SessionResponse
     info!("user_identity: {}", session_response.user_identity.len());
 
     // store user refresh token in cookie
-    let auth_domain = app_state.auth_domain.host_str().unwrap().to_owned();
+    let cookie_domain = app_state.cookie_domain.host_str().unwrap().to_owned();
 
     let user_cookie = cookie::create_cookie(
         "user_identity",
         session_response.user_identity.to_owned(),
-        auth_domain.to_owned(),
+        cookie_domain.to_owned(),
         SameSite::None,
     )
     .await;
@@ -53,7 +53,7 @@ pub async fn generate_session() -> Result<crate::auth::agent_js::SessionResponse
     let exp_cookie = cookie::create_cookie(
         "expiration",
         expiration.to_string(),
-        auth_domain,
+        cookie_domain,
         SameSite::None,
     )
     .await;
@@ -215,7 +215,7 @@ pub struct AppState {
     pub key: Key,
     pub oauth2_client: oauth2::basic::BasicClient,
     pub reqwest_client: reqwest::Client,
-    pub auth_domain: reqwest::Url,
+    pub cookie_domain: reqwest::Url,
     pub app_domain: reqwest::Url,
     pub cloudflare_config: cloudflare_api::connect::ApiClientConfig,
 }

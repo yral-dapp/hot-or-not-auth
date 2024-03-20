@@ -102,19 +102,19 @@ pub async fn verify_payload(
         leptos_axum::extract_with_state::<SignedCookieJar<Key>, AppState>(&app_state).await?;
 
     // TODO: validate from KV
-    let auth_domain = app_state.auth_domain.host_str().unwrap().to_owned();
+    let cookie_domain = app_state.cookie_domain.host_str().unwrap().to_owned();
 
     let user_cookie = cookie::create_cookie(
         "user_identity",
         user_identity,
-        auth_domain.to_owned(),
+        cookie_domain.to_owned(),
         SameSite::None,
     )
     .await;
     jar = jar.add(user_cookie);
 
     let expiration =
-        cookie::create_cookie("expiration", expiration, auth_domain, SameSite::None).await;
+        cookie::create_cookie("expiration", expiration, cookie_domain, SameSite::None).await;
     jar = jar.add(expiration);
 
     let jar_into_response = jar.into_response();
@@ -122,5 +122,5 @@ pub async fn verify_payload(
     for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
         response.append_header(header::SET_COOKIE, header_value.clone());
     }
-    Ok(format!("{}", app_state.auth_domain.as_str()))
+    Ok(format!("{}", app_state.cookie_domain.as_str()))
 }

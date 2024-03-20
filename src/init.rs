@@ -81,13 +81,7 @@ pub fn cors_layer(env: leptos_config::Env) -> CorsLayer {
             CorsLayer::new()
                 .allow_credentials(true)
                 .allow_origin(origins)
-                .allow_methods([
-                    Method::GET,
-                    Method::POST,
-                    Method::OPTIONS,
-                    Method::PUT,
-                    Method::HEAD,
-                ])
+                .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
                 .allow_headers([ACCEPT, CONTENT_TYPE, ACCEPT_LANGUAGE, CONTENT_LANGUAGE])
         }
     }
@@ -97,13 +91,14 @@ pub fn cors_layer(env: leptos_config::Env) -> CorsLayer {
 pub struct AppConfig {
     pub auth_ic_url: String,
     pub auth_sign_key: String,
-    pub auth_domain: String,
+    pub cookie_domain: String,
     pub app_domain: String,
 
     pub cloudflare_account_identifier: String,
     pub cloudflare_api_token: String,
     pub cloudflare_namespace_identifier: String,
 
+    // TODO: Config controlled from dashboard
     pub google_auth_landing_url: String,
     pub google_client_id: String,
     pub google_client_secret: String,
