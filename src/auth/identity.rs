@@ -164,6 +164,7 @@ pub async fn get_user_key_pair(
                     let metadata: Option<HashMap<String, String>> =
                         read_metadata(&public_key, cloudflare_config).await;
                     if private_key.is_none() || metadata.is_none() {
+                        info!("private_key or metadata is empty");
                         None
                     } else {
                         let metadata = metadata.unwrap();
@@ -185,7 +186,7 @@ pub async fn get_user_key_pair(
     let user_key_pair = match user_key_pair {
         Some(kp) => kp,
         None => {
-            // generate new user identity
+            info!("generate new user identity");
             let new_key_pair = generate::key_pair().unwrap();
             {
                 let private_key =

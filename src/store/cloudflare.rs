@@ -14,7 +14,7 @@ pub async fn read_kv(key_name: &str, cloudflare_config: &ApiClientConfig) -> Opt
     match cloudflare_config.cloudflare_client.send(end_point).await {
         Ok(response) => Some(response),
         Err(error) => {
-            warn!("Error read_kv: {}", error);
+            warn!("key: {}, Error read_kv: {}", key_name, error);
             None
         }
     }
@@ -35,13 +35,16 @@ pub async fn read_metadata(
             false => {
                 warn!("Error read_metadata: ");
                 for error in response.errors {
-                    warn!("code: {}, message: {}", error.code, error.message);
+                    warn!(
+                        "key: {}, code: {}, message: {}",
+                        key_name, error.code, error.message
+                    );
                 }
                 None
             }
         },
         Err(error) => {
-            warn!("Error read_metadata: {}", error);
+            warn!("key: {}, Error read_metadata: {}", key_name, error);
             None
         }
     }

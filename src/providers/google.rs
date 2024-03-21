@@ -2,7 +2,6 @@ use crate::auth::agent_js::SessionResponse;
 use cfg_if::cfg_if;
 use leptos::*;
 use leptos_router::{use_query, Params};
-use wasm_bindgen::JsCast;
 
 cfg_if! {
 if #[cfg(feature="ssr")] {
@@ -126,7 +125,7 @@ async fn google_verify_response(
 ) -> Result<SessionResponse, ServerFnError> {
     let app_state =
         use_context::<AppState>().ok_or_else(|| ServerFnError::new("Context not found!"))?;
-    let mut jar: PrivateCookieJar =
+    let mut private_jar: PrivateCookieJar =
         leptos_axum::extract_with_state::<PrivateCookieJar<Key>, AppState>(&app_state).await?;
     let mut signed_jar: SignedCookieJar =
         leptos_axum::extract_with_state::<SignedCookieJar<Key>, AppState>(&app_state).await?;
@@ -137,40 +136,38 @@ async fn google_verify_response(
     }
     .ok_or_else(|| ServerFnError::new("User Session not found."))?;
 
-    let client = app_state.oauth2_client;
-    let csrf_token = jar
+    let csrf_token = private_jar
         .get("csrf_token")
         .map(|cookie| cookie.value().to_owned())
         .ok_or_else(|| ServerFnError::new("No CSRF token found!"))?;
     if !csrf_token.eq(&provided_csrf) {
         return Err(ServerFnError::new("Invalid CSRF token!"));
     }
-    jar = jar.remove(Cookie::from("csrf_token"));
+    private_jar = private_jar.remove(Cookie::from("csrf_token"));
     info!("aftr csrf: {}", csrf_token.len());
-    let pkce_verifier = jar
+    let pkce_verifier = private_jar
         .get("pkce_verifier")
         .map(|cookie| cookie.value().to_owned())
         .ok_or_else(|| ServerFnError::new("No Verifier found!"))?;
-    jar = jar.remove(Cookie::from("pkce_verifier"));
-    let jar_into_response = jar.into_response();
+    private_jar = private_jar.remove(Cookie::from("pkce_verifier"));
 
+    // TODO: remove cookies
+    let jar_into_response = private_jar.into_response();
     let response_options = expect_context::<ResponseOptions>();
     for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
-        response_options.append_header(header::SET_COOKIE, header_value.clone());
+        response_options.insert_header(header::SET_COOKIE, header_value.clone());
     }
     info!("aftr pkce: {}", pkce_verifier.len());
 
     let pkce_verifier = PkceCodeVerifier::new(pkce_verifier);
+    let client = app_state.oauth2_client;
     let token_result = client
         .exchange_code(AuthorizationCode::new(code.clone()))
         .set_pkce_verifier(pkce_verifier)
         .request_async(async_http_client)
         .await?;
 
-    info!(
-        "token_result: f you need any inputs from my side.{:?}",
-        &token_result
-    );
+    info!("token_result: {:?}", &token_result);
     let access_token = token_result.access_token().secret();
     // TODO: check against delegate session. set whichever is lower
     let expires_in = token_result.expires_in().unwrap().as_secs();
@@ -209,6 +206,8 @@ async fn google_verify_response(
             if !user_identity.eq(&user_public_key) {
                 // returning user with different temporary session
                 // delete current temp session
+                // TODO: check if pubkey with google exists if not use this
+                info!("Deleting: {}", user_identity);
                 let _ignore = delete_kv(&user_identity, &app_state.cloudflare_config).await;
                 Some(user_public_key)
             } else {
@@ -229,6 +228,10 @@ async fn google_verify_response(
     let session_response = get_session_response(user_identity, &app_state.cloudflare_config).await;
     let cookie_domain = app_state.cookie_domain.host_str().unwrap().to_owned();
 
+    info!(
+        "user_identity in session: {}",
+        session_response.user_identity
+    );
     let user_cookie = cookie::create_cookie(
         "user_identity",
         session_response.user_identity.to_owned(),
@@ -253,7 +256,7 @@ async fn google_verify_response(
         .headers()
         .get_all(header::SET_COOKIE)
     {
-        response_options.append_header(header::SET_COOKIE, header_value.clone());
+        response_options.insert_header(header::SET_COOKIE, header_value.clone());
     }
 
     Ok(session_response)

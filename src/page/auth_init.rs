@@ -1,16 +1,16 @@
 use crate::constants;
-use leptos::logging::log;
 use leptos::{
-    logging::{error, warn},
+    logging::{error, log, warn},
     *,
 };
 use leptos_use::{use_event_listener, use_window};
-use reqwest::Url;
-use wasm_bindgen::JsValue;
 
 /// When user wants to login this opens in iframe
 #[component]
 pub fn staging() -> impl IntoView {
+    use reqwest::Url;
+    use wasm_bindgen::JsValue;
+
     let url = create_local_resource(move || (), |_| get_redirect_url());
     create_effect(move |_| match url.get() {
         Some(Ok(u)) => {
@@ -32,9 +32,22 @@ pub fn staging() -> impl IntoView {
                         }
                         Some(session) => {
                             log!("session received: {}", session.len());
+                            let message = session.to_owned();
+                            let session = session.to_owned();
+
+                            let resource = create_local_resource(
+                                move || session.clone(),
+                                |session| update_session(session),
+                            );
+                            create_effect(move |_| match resource.get() {
+                                Some(Ok(())) => {}
+                                Some(Err(_)) => {}
+                                None => {}
+                            });
+
                             let parent = use_window().as_ref().unwrap().parent().unwrap().unwrap();
                             match parent.post_message(
-                                &JsValue::from_str(&session),
+                                &JsValue::from_str(&message),
                                 constants::APP_DOMAIN.as_str(),
                             ) {
                                 Err(error) => error!(
@@ -89,4 +102,61 @@ pub async fn get_redirect_url() -> Result<String, ServerFnError> {
     ));
 
     Ok(url.as_str().to_owned())
+}
+
+#[server]
+pub async fn update_session(session: String) -> Result<(), ServerFnError> {
+    use crate::auth::{agent_js, cookie, identity::AppState};
+    use axum::{http::header, response::IntoResponse};
+    use axum_extra::extract::{
+        cookie::{Key, SameSite},
+        SignedCookieJar,
+    };
+    use chrono::{Duration, Utc};
+    use leptos_axum::ResponseOptions;
+
+    let session = serde_json::from_str::<agent_js::SessionResponse>(&session)
+        .map_err(|e| ServerFnError::new(format!("{:?}", e)))?;
+    let app_state =
+        use_context::<AppState>().ok_or_else(|| ServerFnError::new("Context not found!"))?;
+    let mut signed_jar: SignedCookieJar =
+        leptos_axum::extract_with_state::<SignedCookieJar<Key>, AppState>(&app_state).await?;
+
+    let cookie_domain = app_state.cookie_domain.host_str().unwrap().to_owned();
+
+    let user_cookie = cookie::create_cookie(
+        "user_identity",
+        session.user_identity.to_owned(),
+        cookie_domain.to_owned(),
+        SameSite::None,
+    )
+    .await;
+    signed_jar = signed_jar.add(user_cookie);
+
+    let expiration = match session.delegation_identity._delegation.delegations.get(0) {
+        Some(signed_delegation) => signed_delegation.delegation.expiration.to_owned(),
+        None => {
+            let expiration = Utc::now() + Duration::days(30);
+            expiration
+                .timestamp_nanos_opt()
+                .unwrap()
+                .unsigned_abs()
+                .to_string()
+        }
+    };
+
+    let exp_cookie =
+        cookie::create_cookie("expiration", expiration, cookie_domain, SameSite::None).await;
+    signed_jar = signed_jar.add(exp_cookie);
+
+    let signed_jar_into_response = signed_jar.into_response();
+    let response_options = expect_context::<ResponseOptions>();
+    for header_value in signed_jar_into_response
+        .headers()
+        .get_all(header::SET_COOKIE)
+    {
+        response_options.append_header(header::SET_COOKIE, header_value.clone());
+    }
+
+    Ok(())
 }
