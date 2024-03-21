@@ -1,12 +1,13 @@
 auth_ic_url = "https://ic0.app"
 auth_sign_key = ""
-auth_domain = "https://hot-or-not-auth.fly.dev"
-app_domain = "https://hot-or-not-web-leptos-ssr.fly.dev"
+cookie_domain = "https://yral.com"
+auth_domain = "https://auth.yral.com"
+app_domain = "https://yral.com"
 
 cloudflare_account_identifier = ""
 cloudflare_api_token = ""
 cloudflare_namespace_identifier = ""
 
-google_auth_landing_url = "https://hot-or-not-auth.fly.dev/google_oauth2_response"
+google_auth_landing_url = "https://auth.yral.com/google_oauth2_response"
 google_client_id = ""
 google_client_secret = ""

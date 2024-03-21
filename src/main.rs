@@ -83,6 +83,7 @@ async fn main() {
 
     let conf = get_configuration(None).await.unwrap();
     let leptos_options = conf.leptos_options;
+    let app_env = leptos_options.env.clone();
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(App);
 
@@ -92,13 +93,14 @@ async fn main() {
         routes: routes.clone(),
         oauth2_client,
         reqwest_client: reqwest::Client::new(),
+        cookie_domain: Url::parse(&app_config.cookie_domain).unwrap(),
         auth_domain: Url::parse(&app_config.auth_domain).unwrap(),
         app_domain: Url::parse(&app_config.app_domain).unwrap(),
         cloudflare_config,
     };
     let app_state: identity::AppState = app_state;
 
-    let service = ServiceBuilder::new().layer(init::cors_layer());
+    let service = ServiceBuilder::new().layer(init::cors_layer(app_env));
 
     let app = Router::new()
         .route(

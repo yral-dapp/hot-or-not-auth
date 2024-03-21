@@ -1,6 +1,8 @@
 use crate::auth::identity::generate_session;
 use leptos::*;
 
+/// This opens in iframe
+/// Used to generate anonymous session
 #[component]
 pub fn AnonymousIdentity() -> impl IntoView {
     use crate::constants;

@@ -2,6 +2,7 @@ use crate::auth::agent_js::SessionResponse;
 use cfg_if::cfg_if;
 use leptos::*;
 use leptos_router::{use_query, Params};
+use wasm_bindgen::JsCast;
 
 cfg_if! {
 if #[cfg(feature="ssr")] {
@@ -62,12 +63,12 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     info!("b4 pkce sec: {}", pkce_verifier.len());
     info!("b4 csrf sec: {}", csrf_token.len());
 
-    let auth_domain = app_state.auth_domain.host_str().unwrap().to_owned();
+    let cookie_domain = app_state.cookie_domain.host_str().unwrap().to_owned();
 
     let pkce_verifier = cookie::create_cookie(
         "pkce_verifier",
         pkce_verifier.to_owned(),
-        auth_domain.to_owned(),
+        cookie_domain.to_owned(),
         SameSite::None,
     )
     .await;
@@ -76,7 +77,7 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     let csrf_token = cookie::create_cookie(
         "csrf_token",
         csrf_token.to_owned(),
-        auth_domain,
+        cookie_domain,
         SameSite::None,
     )
     .await;
@@ -93,6 +94,7 @@ async fn google_auth_url() -> Result<String, ServerFnError> {
     Ok(auth_url.to_string())
 }
 
+/// User is shown login options
 #[component]
 pub fn Login() -> impl IntoView {
     use leptos_use::use_window;
@@ -225,12 +227,12 @@ async fn google_verify_response(
         }
     };
     let session_response = get_session_response(user_identity, &app_state.cloudflare_config).await;
-    let auth_domain = app_state.auth_domain.host_str().unwrap().to_owned();
+    let cookie_domain = app_state.cookie_domain.host_str().unwrap().to_owned();
 
     let user_cookie = cookie::create_cookie(
         "user_identity",
         session_response.user_identity.to_owned(),
-        auth_domain.to_owned(),
+        cookie_domain.to_owned(),
         SameSite::None,
     )
     .await;
@@ -240,7 +242,7 @@ async fn google_verify_response(
     let exp_cookie = cookie::create_cookie(
         "expiration",
         expiration.to_string(),
-        auth_domain,
+        cookie_domain,
         SameSite::None,
     )
     .await;
@@ -257,10 +259,11 @@ async fn google_verify_response(
     Ok(session_response)
 }
 
+/// After user completes login user is redirected to this page
 #[component]
 pub fn OAuth2Response() -> impl IntoView {
     use crate::constants;
-    use leptos::logging::log;
+    use leptos::logging::{error, log};
     use leptos_use::use_window;
     use wasm_bindgen::JsValue;
     use web_sys::Window;
@@ -284,11 +287,8 @@ pub fn OAuth2Response() -> impl IntoView {
                 constants::AUTH_DOMAIN.as_str(),
             ) {
                 Err(error) => {
-                    log!(
-                        "post result to auth failed: {}",
-                        error.as_string().unwrap_or("".to_owned())
-                    );
-                    // let _ = window.close();
+                    error!("post result to auth failed: {:?}", error);
+                    let _ = window.close();
                 }
                 Ok(_) => {
                     let _ = window.close();

@@ -1,5 +1,7 @@
 use leptos::{logging::error, *};
 
+/// Opens in new window
+/// Verifies session in query params
 #[component]
 pub fn verify_creds() -> impl IntoView {
     use leptos_router::use_query_map;
@@ -102,19 +104,19 @@ pub async fn verify_payload(
         leptos_axum::extract_with_state::<SignedCookieJar<Key>, AppState>(&app_state).await?;
 
     // TODO: validate from KV
-    let auth_domain = app_state.auth_domain.host_str().unwrap().to_owned();
+    let cookie_domain = app_state.cookie_domain.host_str().unwrap().to_owned();
 
     let user_cookie = cookie::create_cookie(
         "user_identity",
         user_identity,
-        auth_domain.to_owned(),
+        cookie_domain.to_owned(),
         SameSite::None,
     )
     .await;
     jar = jar.add(user_cookie);
 
     let expiration =
-        cookie::create_cookie("expiration", expiration, auth_domain, SameSite::None).await;
+        cookie::create_cookie("expiration", expiration, cookie_domain, SameSite::None).await;
     jar = jar.add(expiration);
 
     let jar_into_response = jar.into_response();
