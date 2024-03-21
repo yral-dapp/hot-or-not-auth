@@ -92,6 +92,7 @@ pub struct AppConfig {
     pub auth_ic_url: String,
     pub auth_sign_key: String,
     pub cookie_domain: String,
+    pub auth_domain: String,
     pub app_domain: String,
 
     pub cloudflare_account_identifier: String,

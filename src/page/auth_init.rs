@@ -84,7 +84,7 @@ pub async fn get_redirect_url() -> Result<String, ServerFnError> {
     let user_identity = URL_SAFE.encode(user_identity.value());
     let expiration = URL_SAFE.encode(expiration.value());
 
-    let mut url = app_state.cookie_domain.join("verify_creds").unwrap();
+    let mut url = app_state.auth_domain.join("verify_creds").unwrap();
     url.set_query(Some(
         format!("u={}&e={}", user_identity, expiration).as_str(),
     ));

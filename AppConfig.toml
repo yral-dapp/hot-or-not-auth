@@ -1,6 +1,7 @@
 auth_ic_url = "https://ic0.app"
 auth_sign_key = ""
 cookie_domain = "https://yral.com"
+auth_domain = "https://auth.yral.com"
 app_domain = "https://yral.com"
 
 cloudflare_account_identifier = ""

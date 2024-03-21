@@ -124,5 +124,5 @@ pub async fn verify_payload(
     for header_value in jar_into_response.headers().get_all(header::SET_COOKIE) {
         response.append_header(header::SET_COOKIE, header_value.clone());
     }
-    Ok(format!("{}", app_state.cookie_domain.as_str()))
+    Ok(format!("{}", app_state.auth_domain.as_str()))
 }

@@ -94,6 +94,7 @@ async fn main() {
         oauth2_client,
         reqwest_client: reqwest::Client::new(),
         cookie_domain: Url::parse(&app_config.cookie_domain).unwrap(),
+        auth_domain: Url::parse(&app_config.auth_domain).unwrap(),
         app_domain: Url::parse(&app_config.app_domain).unwrap(),
         cloudflare_config,
     };

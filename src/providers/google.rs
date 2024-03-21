@@ -288,7 +288,7 @@ pub fn OAuth2Response() -> impl IntoView {
             ) {
                 Err(error) => {
                     error!("post result to auth failed: {:?}", error);
-                    // let _ = window.close();
+                    let _ = window.close();
                 }
                 Ok(_) => {
                     let _ = window.close();
