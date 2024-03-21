@@ -32,30 +32,30 @@ pub fn staging() -> impl IntoView {
                         }
                         Some(session) => {
                             log!("session received: {}", session.len());
-                            let message = session.to_owned();
                             let session = session.to_owned();
 
-                            let resource = create_local_resource(
+                            let _session_update = create_local_resource(
                                 move || session.clone(),
-                                |session| update_session(session),
+                                |session| async move {
+                                    let message_to_app = session.to_owned();
+                                    match update_session(session).await {
+                                        Ok(()) => log!("session updated"),
+                                        Err(error) => error!("error in session update: {}", error),
+                                    }
+                                    let parent =
+                                        use_window().as_ref().unwrap().parent().unwrap().unwrap();
+                                    match parent.post_message(
+                                        &JsValue::from_str(&message_to_app),
+                                        constants::APP_DOMAIN.as_str(),
+                                    ) {
+                                        Err(error) => error!(
+                                            "post result to app failed: {}",
+                                            error.as_string().unwrap_or("".to_owned())
+                                        ),
+                                        Ok(_) => log!("session posted"),
+                                    }
+                                },
                             );
-                            create_effect(move |_| match resource.get() {
-                                Some(Ok(())) => {}
-                                Some(Err(_)) => {}
-                                None => {}
-                            });
-
-                            let parent = use_window().as_ref().unwrap().parent().unwrap().unwrap();
-                            match parent.post_message(
-                                &JsValue::from_str(&message),
-                                constants::APP_DOMAIN.as_str(),
-                            ) {
-                                Err(error) => error!(
-                                    "post result to app failed: {}",
-                                    error.as_string().unwrap_or("".to_owned())
-                                ),
-                                Ok(_) => log!("session posted"),
-                            }
                         }
                         None => {
                             // no action
@@ -104,6 +104,7 @@ pub async fn get_redirect_url() -> Result<String, ServerFnError> {
     Ok(url.as_str().to_owned())
 }
 
+// TODO: Verify signature before session update
 #[server]
 pub async fn update_session(session: String) -> Result<(), ServerFnError> {
     use crate::auth::{agent_js, cookie, identity::AppState};
